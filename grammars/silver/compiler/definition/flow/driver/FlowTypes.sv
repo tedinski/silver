@@ -15,9 +15,9 @@ imports silver:util:treeset as set;
 type ProdName = String;
 type NtName = String;
 
--- from explicit specifications
+-- from explicit specifications and initial flow graphs
 function computeInitialFlowTypes
-EnvTree<FlowType> ::= specDefs::[(String, String, [String], [String])]
+EnvTree<FlowType> ::= graphs::[ProductionGraph] specDefs::[(String, String, [String], [String])]
 {
   -- We don't care what flow specs reference what
   local dropRefs::[(String, String, [String])] =
@@ -26,7 +26,7 @@ EnvTree<FlowType> ::= specDefs::[(String, String, [String], [String])]
   local specs :: [(NtName, [(String, [String])])] =
     ntListCoalesce(groupBy(ntListEq, sortBy(ntListLte, dropRefs)));
   
-  return rtm:add(map(initialFlowType, specs), rtm:empty());
+  return foldr(updateFlowType, rtm:add(map(initialFlowType, specs), rtm:empty()), graphs);
 }
 fun initialFlowType Pair<NtName FlowType> ::= x::(NtName, [(String, [String])]) =
   (x.fst, g:add(flatMap(toFlatEdges, x.snd), g:empty()));
@@ -70,48 +70,38 @@ function solveFlowTypes
   prodEnv::EnvTree<ProductionGraph>
   ntEnv::EnvTree<FlowType>
 {
-  local updatedGraph :: ProductionGraph = updateGraph(head(graphs), prodEnv, ntEnv);
+  local graph :: ProductionGraph = head(graphs);
 
-  local currentFlowType :: FlowType = findFlowType(updatedGraph.lhsNt, ntEnv);
-  
-  -- The New Improved Flow Type
-  local synExpansion :: [Pair<String [String]>] =
-    map(expandVertexFilterTo(_, updatedGraph), updatedGraph.flowTypeVertexes);
-  
-  -- Find what edges are NEW NEW NEW
-  local brandNewEdges :: [Pair<String String>] =
-    findBrandNewEdges(synExpansion, currentFlowType);
-    
-  local newFlowType :: FlowType =
-    g:add(brandNewEdges, currentFlowType);
-  -- TODO: we could just always "add everything unconditionally" but we also need to know if there were
-  -- any new additions... so we'd need something added to graph to support that.
-  
-  local recurse :: Pair<Boolean Pair<[ProductionGraph] EnvTree<FlowType>>> =
-    solveFlowTypes(tail(graphs), prodEnv, rtm:update(updatedGraph.lhsNt, [newFlowType], ntEnv));
-    
-  return if null(graphs) then (false, ([], ntEnv))
-  else (!null(brandNewEdges) || recurse.fst, updatedGraph :: recurse.snd.fst, recurse.snd.snd);
+  local updatedGraph :: Maybe<ProductionGraph> = updateGraph(graph, prodEnv, ntEnv);
+
+  local recurse :: (Boolean, [ProductionGraph], EnvTree<FlowType>) =
+    case updatedGraph of
+    | nothing() -> solveFlowTypes(tail(graphs), prodEnv, ntEnv)
+    | just(newGraph) -> solveFlowTypes(
+        tail(graphs),
+        rtm:update(graph.prod, [newGraph], prodEnv),
+        updateFlowType(newGraph, ntEnv))
+    end;
+
+  return if null(graphs) then (false, [], ntEnv)
+  else (updatedGraph.isJust || recurse.1, fromMaybe(graph, updatedGraph) :: recurse.2, recurse.3);
 }
 
-
-function findBrandNewEdges
-[Pair<String String>] ::= candidates::[Pair<String [String]>]  currentFlowType::FlowType
+-- Update flow types for an nt in ntEnv using prod
+function updateFlowType
+EnvTree<FlowType> ::= graph::ProductionGraph ntEnv::EnvTree<FlowType>
 {
-  local syn :: String = head(candidates).fst;
-  local inhs :: [String] = head(candidates).snd;
-  
-  -- TODO: we might take '[Pair<String Set<String>>]' insteadof [String] and gain speed?
-  local newinhs :: [String] = removeAll(set:toList(g:edgesFrom(syn, currentFlowType)), inhs);
-  
-  local newEdges :: [Pair<String String>] = map(pair(fst=syn, snd=_), newinhs);
-  
-  return if null(candidates) then [] else newEdges ++ findBrandNewEdges(tail(candidates), currentFlowType);
+  local currentFlowType :: FlowType = findFlowType(graph.lhsNt, ntEnv);
+  local newFlowType :: FlowType = g:add(
+    flatMap(expandVertexFilterTo(_, graph), graph.flowTypeVertexes),
+    currentFlowType);
+  return rtm:update(graph.lhsNt, [newFlowType], ntEnv);
 }
 
 -- Expand 'ver' using 'graph', then filter down to just those in 'inhs'
-fun expandVertexFilterTo Pair<String [String]> ::= ver::FlowVertex  graph::ProductionGraph =
-  (ver.flowTypeName, filterLhsInh(set:toList(graph.edgeMap(ver))));
+fun expandVertexFilterTo [(String, String)] ::= ver::FlowVertex  graph::ProductionGraph =
+  map(pair(fst=ver.flowTypeName, snd=_),
+    filterLhsInh(set:toList(graph.edgeMap(ver))));
 
 {--
  - Filters vertexes down to just the names of inherited attributes on the LHS

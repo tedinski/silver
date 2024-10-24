@@ -39,7 +39,7 @@ top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  a::Decor
       map(constructDispatchGraph(_, allFlowEnv, allRealEnv), allDispatchSigs);
   
   local initialFT :: EnvTree<FlowType> =
-    computeInitialFlowTypes(allSpecDefs);
+    computeInitialFlowTypes(prodGraph, allSpecDefs);
   
   -- Now, solve for flow types!!
   local flowTypes1 :: Pair<[ProductionGraph] EnvTree<FlowType>> =

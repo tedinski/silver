@@ -7,9 +7,10 @@ data nonterminal ProductionGraph with stitchedGraph, prod, lhsNt, transitiveClos
 -- TODO: future me note: these are good candidates to be "static attributes" maybe?
 {--
  - Given a set of flow types, stitches those edges into the graph for
- - all stitch points (i.e. children, locals, forward)
+ - all stitch points (i.e. children, locals, forward).
+ - Either just a new graph, or nothing if no new edges were added.
  -}
-synthesized attribute stitchedGraph :: (ProductionGraph ::= EnvTree<FlowType> EnvTree<ProductionGraph>);
+synthesized attribute stitchedGraph :: (Maybe<ProductionGraph> ::= EnvTree<FlowType> EnvTree<ProductionGraph>);
 {--
  - Just compute the transitive closure of the edge set
  -}
@@ -20,7 +21,7 @@ synthesized attribute transitiveClosure :: ProductionGraph;
 synthesized attribute edgeMap :: (set:Set<FlowVertex> ::= FlowVertex);
 synthesized attribute suspectEdgeMap :: ([FlowVertex] ::= FlowVertex);
 
-synthesized attribute cullSuspect :: (ProductionGraph ::= EnvTree<FlowType>);
+synthesized attribute cullSuspect :: (Maybe<ProductionGraph> ::= EnvTree<FlowType>);
 
 -- This is, apparently, only used to look up production by name
 synthesized attribute prod::String;
@@ -63,8 +64,8 @@ top::ProductionGraph ::=
             flatMap(stitchEdgesFor(_, flowTypes, prodGraphs), stitchPoints))
     in let repaired :: g:Graph<FlowVertex> =
              repairClosure(newEdges, graph)
-    in if null(newEdges) then top else
-         productionGraph(prod, lhsNt, flowTypeVertexes, repaired, suspectEdges, stitchPoints)
+    in if null(newEdges) then nothing() else
+         just(productionGraph(prod, lhsNt, flowTypeVertexes, repaired, suspectEdges, stitchPoints))
     end end;
   
   top.transitiveClosure =
@@ -82,17 +83,20 @@ top::ProductionGraph ::=
           flatMap(findAdmissibleEdges(_, graph, findFlowType(lhsNt, flowTypes)), suspectEdges)
     in let repaired :: g:Graph<FlowVertex> =
              repairClosure(newEdges, graph)
-    in if null(newEdges) then top else
-         productionGraph(prod, lhsNt, flowTypeVertexes, repaired, suspectEdges, stitchPoints)
+    in if null(newEdges) then nothing() else
+         just(productionGraph(prod, lhsNt, flowTypeVertexes, repaired, suspectEdges, stitchPoints))
     end end;
 }
 
 fun updateGraph
-ProductionGraph ::=
-  graph::ProductionGraph
-  prodEnv::EnvTree<ProductionGraph>
-  ntEnv::EnvTree<FlowType> =
-    graph.stitchedGraph(ntEnv, prodEnv).cullSuspect(ntEnv);
+Maybe<ProductionGraph> ::=
+    graph::ProductionGraph
+    prodEnv::EnvTree<ProductionGraph>
+    ntEnv::EnvTree<FlowType> =
+  case graph.stitchedGraph(ntEnv, prodEnv) of
+  | just(newGraph) -> alt(newGraph.cullSuspect(ntEnv), just(newGraph))
+  | nothing() -> graph.cullSuspect(ntEnv)
+  end;
 
 -- construct a production graph for each production
 fun computeAllProductionGraphs
@@ -262,7 +266,7 @@ ProductionGraph ::= ns::NamedSignature  flowEnv::FlowEnv  realEnv::Env  prodEnv:
   local g :: ProductionGraph =
     productionGraph(prod, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
 
-  return updateGraph(g, prodEnv, ntEnv);
+  return fromMaybe(g, updateGraph(g, prodEnv, ntEnv));
 }
 
 {--
@@ -299,7 +303,7 @@ ProductionGraph ::= defs::[FlowDef]  realEnv::Env  prodEnv::EnvTree<ProductionGr
   local g :: ProductionGraph =
     productionGraph(prod, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
 
-  return updateGraph(g, prodEnv, ntEnv);
+  return fromMaybe(g, updateGraph(g, prodEnv, ntEnv));
 }
 
 {--
@@ -335,7 +339,7 @@ ProductionGraph ::= ns::NamedSignature  defs::[FlowDef]  realEnv::Env  prodEnv::
   local g :: ProductionGraph =
     productionGraph(prod, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
 
-  return updateGraph(g, prodEnv, ntEnv);
+  return fromMaybe(g, updateGraph(g, prodEnv, ntEnv));
 }
 
 
