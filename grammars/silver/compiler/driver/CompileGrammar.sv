@@ -1,6 +1,7 @@
 grammar silver:compiler:driver;
 
 import silver:reflect;
+import silver:util:random;
 
 {--
  - Hunts down a grammar and obtains its symbols, either by building or from an interface file.
@@ -25,7 +26,7 @@ MaybeT<IO RootSpec> ::=
         guard(!null(files)); -- Grammar had no files!
         grammarTime :: Integer <- lift(fileTimes(grammarLocation, files));
 
-        return (grammarTime, grammarLocation, sort(files));
+        return (grammarTime, grammarLocation, files);
       }.run);
     findInterface::Maybe<RootSpec> <-
       -- IO Step 3: Let's look for an interface file
@@ -76,8 +77,12 @@ fun isValidSilverFile Boolean ::= f::String =
   any(map(endsWith(_, f), allowedSilverFileExtensions)) && !startsWith(".", f);
 fun listSilverFiles IO<[String]> ::= dir::String =
   do {
+    silverRandomizeEnvVar :: String <- envVar("SILVER__RANDOMIZE_FILE_ORDER_IN_GRAMMAR");
     files :: [String] <- listContents(dir);
-    return filter(isValidSilverFile, files);
+    let silverFiles::[String] = filter(isValidSilverFile, files);
+    if silverRandomizeEnvVar == "1"
+      then runRandomGen(randomShuffle(silverFiles))
+      else pure(sort(silverFiles));
   };
 
 {--
