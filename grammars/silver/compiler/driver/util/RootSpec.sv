@@ -204,7 +204,17 @@ top::RootSpec ::= i::InterfaceItems  generateLocation::Maybe<String>  jarSource:
   top.declaredName = i.maybeDeclaredName.fromJust;
   propagate moduleNames, allGrammarDependencies;
   top.grammarErrors = []; -- TODO: consider getting grammarName and comparing against declaredName?
-  top.parsingErrors = [];
+
+  local missingModuleNames :: [String] =
+    filter(\ g::String -> null(searchEnvTree(g, top.compiledGrammars)), i.moduleNames);
+  -- Not really a parse error, but we want to report this before proceeding to any type checking.
+  top.parsingErrors =
+    case jarSource of
+    | just(jarFile) -> map(
+      \ grammarName -> (jarFile, [err(loc(jarFile, -1, -1, -1, -1, -1, -1), "Missing transitive dependency " ++ grammarName ++ " for this library; check that its dependencies are included.")]),
+      missingModuleNames)
+    | nothing() -> []
+    end;
   top.allFileErrors = [];
 
   top.jarName := nothing();
