@@ -17,35 +17,29 @@ MaybeT<IO RootSpec> ::=
   local gramPath :: String = grammarToPath(grammarName);
 
   local fromInterfaceOrSource::MaybeT<IO RootSpec> = do {
-    findGrammar::Maybe<(Integer, String, [String])> <- lift(do {
-        -- IO Step 1: Look for the grammar's source files
-        grammarLocation :: String <- findGrammarLocation(gramPath, benv.grammarPath);
+    -- IO Step 1: Look for the grammar's source files
+    grammarLocation :: String <- findGrammarLocation(gramPath, benv.grammarPath);
 
-        -- IO Step 2: List those files, and obtain their newest modification time
-        files :: [String] <- lift(listSilverFiles(grammarLocation));
-        guard(!null(files)); -- Grammar had no files!
-        grammarTime :: Integer <- lift(fileTimes(grammarLocation, files));
+    -- IO Step 2: List those files, and obtain their newest modification time
+    files :: [String] <- lift(listSilverFiles(grammarLocation));
+    guard(!null(files)); -- Grammar had no files!
+    grammarTime :: Integer <- lift(fileTimes(grammarLocation, files));
 
-        return (grammarTime, grammarLocation, files);
-      }.run);
-    findInterface::Maybe<RootSpec> <-
+    findInterface::Maybe<RootSpec> <- lift(do {
+      guard(!ignoreInterface);
       -- IO Step 3: Let's look for an interface file
-      if ignoreInterface then pure(nothing())
-      else lift(compileInterface(grammarName, benv.silverHostGen).run);
-    let interfaceDirty::Boolean = do {
-      -- If we found both, check if the interface file is out of date
-      foundGrammar::(Integer, String, [String]) <- findGrammar;
-      foundInterface::RootSpec <- findInterface;
-      guard(foundGrammar.1 > foundInterface.grammarTime);
-    }.isJust;
+      compileInterface(grammarName, benv.silverHostGen);
+    }.run);
     alt(
-      if forceRecompile || interfaceDirty then empty else maybeT(pure(findInterface)),
+      do {
+        guard(!forceRecompile);
+        foundInterface :: RootSpec <- maybeT(pure(findInterface));
+        -- If we found both, check if the interface file is out of date
+        guard(grammarTime > foundInterface.grammarTime);
+        return foundInterface;
+      },
       do {
         -- We didn't find a valid interface file
-        foundGrammar::(Integer, String, [String]) <- maybeT(pure(findGrammar));
-        let grammarTime::Integer = foundGrammar.1;
-        let grammarLocation::String = foundGrammar.2;
-        let files::[String] = foundGrammar.3;
 
         -- IO Step 4: Build the grammar, and say so
         lift(eprintln("Compiling " ++ grammarName ++ "\n\t[" ++ grammarLocation ++ "]\n\t[" ++ renderFileNames(files, 0) ++ "]"));
