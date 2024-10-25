@@ -39,15 +39,14 @@ top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  a::Decor
       map(constructDispatchGraph(_, allFlowEnv, allRealEnv), allDispatchSigs);
   
   local initialFT :: EnvTree<FlowType> =
-    computeInitialFlowTypes(prodGraph, allSpecDefs);
+    computeInitialFlowTypes(allSpecDefs);
   
   -- Now, solve for flow types!!
-  local flowTypes1 :: Pair<[ProductionGraph] EnvTree<FlowType>> =
-    fullySolveFlowTypes(prodGraph, initialFT);
+  local flowTypes1 :: (EnvTree<ProductionGraph>, EnvTree<FlowType>) =
+    runFlowTypeInference(prodGraph, initialFT);
   
+  production finalGraphEnv :: EnvTree<ProductionGraph> = flowTypes1.fst;
   production flowTypes :: EnvTree<FlowType> = flowTypes1.snd;
-  production finalGraphs :: [ProductionGraph] = flowTypes1.fst;
-  production finalGraphEnv :: EnvTree<ProductionGraph> = directBuildTree(map(prodGraphToEnv, finalGraphs));
   
   g.productionFlowGraphs = finalGraphEnv;
   g.grammarFlowTypes = flowTypes;

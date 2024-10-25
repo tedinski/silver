@@ -38,7 +38,7 @@ top::Compilation ::= g::Grammars  _  _  a::Decorated CmdArgs  benv::BuildEnv
 {
   top.postOps <-
     if a.dumpFlowGraph
-    then [dumpFlowGraphAction(prodGraph, finalGraphs, unList(rtm:toList(flowTypes)))]
+    then [dumpFlowGraphAction(prodGraph, rtm:values(finalGraphEnv), unList(rtm:toList(flowTypes)))]
     else [];
 }
 

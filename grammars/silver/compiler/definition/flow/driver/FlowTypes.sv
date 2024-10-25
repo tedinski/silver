@@ -17,7 +17,7 @@ type NtName = String;
 
 -- from explicit specifications and initial flow graphs
 function computeInitialFlowTypes
-EnvTree<FlowType> ::= graphs::[ProductionGraph] specDefs::[(String, String, [String], [String])]
+EnvTree<FlowType> ::= specDefs::[(String, String, [String], [String])]
 {
   -- We don't care what flow specs reference what
   local dropRefs::[(String, String, [String])] =
@@ -26,7 +26,7 @@ EnvTree<FlowType> ::= graphs::[ProductionGraph] specDefs::[(String, String, [Str
   local specs :: [(NtName, [(String, [String])])] =
     ntListCoalesce(groupBy(ntListEq, sortBy(ntListLte, dropRefs)));
   
-  return foldr(updateFlowType, rtm:add(map(initialFlowType, specs), rtm:empty()), graphs);
+  return rtm:add(map(initialFlowType, specs), rtm:empty());
 }
 fun initialFlowType Pair<NtName FlowType> ::= x::(NtName, [(String, [String])]) =
   (x.fst, g:add(flatMap(toFlatEdges, x.snd), g:empty()));
@@ -38,64 +38,68 @@ fun ntListCoalesce [(NtName, [(String, [String])])] ::= l::[[(NtName, String, [S
 fun toFlatEdges [Pair<String String>] ::= x::Pair<String [String]> =
   map(pair(fst=x.fst, snd=_), x.snd);
 
+fun runFlowTypeInference
+(EnvTree<ProductionGraph>, EnvTree<FlowType>) ::=
+    graphs::[ProductionGraph] ntEnv::EnvTree<FlowType> =
+  runState(
+    fullySolveFlowTypes(map((.prod), graphs)),
+    (directBuildTree(map(prodGraphToEnv, graphs)), ntEnv)).1;
+
+type InferState = State<(EnvTree<ProductionGraph>, EnvTree<FlowType>) _>;
 
 {--
  - Produces flow types for every nonterminal.
  - Iterates until convergence.
  -}
-function fullySolveFlowTypes
-([ProductionGraph], EnvTree<FlowType>) ::= 
-  graphs::[ProductionGraph]
-  ntEnv::EnvTree<FlowType>
-{
-  -- Each iteration, we rebuild this... :/
-  -- TODO: consider a 'mapValuesWithMapState' function :: 'k1, v1, map<k1 v1>, map<k2 v2> -> v1, k2, v2'
-  local prodEnv :: EnvTree<ProductionGraph> =
-    directBuildTree(map(prodGraphToEnv, graphs));
-  
-  local iter :: (Boolean, [ProductionGraph], EnvTree<FlowType>) =
-    solveFlowTypes(graphs, prodEnv, ntEnv);
-  
+fun fullySolveFlowTypes InferState<()> ::= prods::[ProdName] = do {
+  -- Update the flow types from all the initial production graphs
+  traverse_(updateFlowType, prods);
+
   -- Just iterate until no new edges are added
-  return if !iter.1 then iter.snd
-  else fullySolveFlowTypes(iter.2, iter.3);
+  doWhile_(do {
+    map(any, traverseA(
+      \ prod::ProdName -> do {
+        -- Update the production graph
+        graphUpdated :: Boolean <- updateProdGraph(prod);
+
+        -- Only update the flow types for the prod's NT if the prod graph changed
+        when_(graphUpdated, updateFlowType(prod));
+        return graphUpdated;
+      },
+      prods));
+  });
+};
+
+{--
+ - Update a production graph using the current flow types.
+ -}
+production updateProdGraph
+top::InferState<Boolean> ::= prod::ProdName
+{
+  local graph :: ProductionGraph = findProductionGraph(prod, top.stateIn.1);
+  local updatedGraph :: Maybe<ProductionGraph> =
+    updateGraph(graph, top.stateIn.1, top.stateIn.2);
+  top.stateOut =
+    case updatedGraph of
+    | just(g) -> (rtm:update(prod, [g], top.stateIn.1), top.stateIn.2)
+    | nothing() -> top.stateIn
+    end;
+  top.stateVal = updatedGraph.isJust;
 }
 
 {--
- - One iteration of solving flow type equations. Goes through each production once.
+ - Update flow types for a nonterminal based on a single production graph.
  -}
-function solveFlowTypes
-(Boolean, [ProductionGraph], EnvTree<FlowType>) ::=
-  graphs::[ProductionGraph]
-  prodEnv::EnvTree<ProductionGraph>
-  ntEnv::EnvTree<FlowType>
+production updateFlowType
+top::InferState<()> ::= prod::ProdName
 {
-  local graph :: ProductionGraph = head(graphs);
-
-  local updatedGraph :: Maybe<ProductionGraph> = updateGraph(graph, prodEnv, ntEnv);
-
-  local recurse :: (Boolean, [ProductionGraph], EnvTree<FlowType>) =
-    case updatedGraph of
-    | nothing() -> solveFlowTypes(tail(graphs), prodEnv, ntEnv)
-    | just(newGraph) -> solveFlowTypes(
-        tail(graphs),
-        rtm:update(graph.prod, [newGraph], prodEnv),
-        updateFlowType(newGraph, ntEnv))
-    end;
-
-  return if null(graphs) then (false, [], ntEnv)
-  else (updatedGraph.isJust || recurse.1, fromMaybe(graph, updatedGraph) :: recurse.2, recurse.3);
-}
-
--- Update flow types for an nt in ntEnv using prod
-function updateFlowType
-EnvTree<FlowType> ::= graph::ProductionGraph ntEnv::EnvTree<FlowType>
-{
-  local currentFlowType :: FlowType = findFlowType(graph.lhsNt, ntEnv);
+  local graph :: ProductionGraph = findProductionGraph(prod, top.stateIn.1);
+  local currentFlowType :: FlowType = findFlowType(graph.lhsNt, top.stateIn.2);
   local newFlowType :: FlowType = g:add(
     flatMap(expandVertexFilterTo(_, graph), graph.flowTypeVertexes),
     currentFlowType);
-  return rtm:update(graph.lhsNt, [newFlowType], ntEnv);
+  top.stateOut = (top.stateIn.1, rtm:update(graph.lhsNt, [newFlowType], top.stateIn.2));
+  top.stateVal = ();
 }
 
 -- Expand 'ver' using 'graph', then filter down to just those in 'inhs'

@@ -25,6 +25,10 @@ fun whenM Monad m => m<Unit> ::= cond::m<Boolean>  body::m<Unit> = bind(cond, wh
 
 fun unlessM Monad m => m<Unit> ::= cond::m<Boolean>  body::m<Unit> = bind(cond, unless(_, body));
 
+fun doWhile_ Monad m => m<Unit> ::= cond::m<Boolean> = whenM(cond, doWhile_(cond));
+
+fun doUntil_ Monad m => m<Unit> ::= cond::m<Boolean> = unlessM(cond, doUntil_(cond));
+
 @{-
 Monads that support failure with an error message.
 
