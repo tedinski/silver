@@ -35,7 +35,7 @@ MaybeT<IO RootSpec> ::=
         guard(!forceRecompile);
         foundInterface :: RootSpec <- maybeT(pure(findInterface));
         -- If we found both, check if the interface file is out of date
-        guard(grammarTime > foundInterface.grammarTime);
+        guard(grammarTime <= foundInterface.grammarTime);
         return foundInterface;
       },
       do {
