@@ -32,7 +32,7 @@ melt.trynode('silver') {
         sh "cp ${source}/* jars/"
       }
     } else {
-      Boolean foundJars = false
+      def foundJars = false
       if (env.BRANCH_NAME == 'develop') {
         // For 'develop', detect pull request merges, and grab jars from the merged branch
         String branch = getMergedBranch()
