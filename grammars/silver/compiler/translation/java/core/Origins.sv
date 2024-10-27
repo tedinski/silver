@@ -61,35 +61,9 @@ function makeNewConstructionOrigin
   nondecorated local ty::Type = top.finalType.outputType;
   local interesting :: Boolean = top.frame.originsContextSource.alwaysConsideredInteresting || !top.isRoot || inInteresting;
 
-  return if typeWantsTracking(ty, top.config, top.env)
+  return if ty.isTracked
          then [makeOriginContextRef(top)++s".makeNewConstructionOrigin(${if interesting then "true" else "false"})"]
          else [];
-}
-
--- These types will not have origins (will not be TrackedNodes) even if built with --force-origins
-function getSpecialCaseNoOrigins
-[String] ::=
-{
-  production attribute names::[String] with ++;
-  names := [
-    -- These are forced to be untracked to prevent circularity
-    "silver:core:OriginInfo",
-    "silver:core:OriginInfoType",
-    "silver:core:OriginNote"
-  ];
-  return names;
-}
-
-
-function typeWantsTracking
-Boolean ::= ty::Type conf::Decorated CmdArgs env::Env
-{
-  return if conf.noOrigins || contains(ty.typeName, getSpecialCaseNoOrigins()) then false
-         else case ty of
-              | nonterminalType(fn, _, _, tracked) -> conf.forceOrigins || tracked
-              | appType(c, _) -> typeWantsTracking(^c, conf, env)
-              | _ -> false
-              end;
 }
 
 function wrapAccessWithOT
@@ -111,7 +85,7 @@ String ::= top::Decorated Expr expr::String
   local noop       :: String = expr;
 
   local impl :: String = if ty.transType == "Object" then polyCopy else
-          (if typeWantsTracking(^ty, top.config, top.env) then directCopy else noop);
+          (if ty.isTracked then directCopy else noop);
 
   return if (top.config.noRedex || top.config.noOrigins) then noop else impl;
   -- The extra (common.Node) cast in the non-generic non-primitive case is sometimes required for reasons I don't fully understand.

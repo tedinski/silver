@@ -6,11 +6,12 @@ import silver:compiler:definition:flow:env;
 import silver:compiler:analysis:uniqueness;
 import silver:util:treemap as rtm;
 import silver:util:graph as g;
+import silver:util:cmdargs;
 
 -- Hide all the flow type computation over here
 
 aspect production compilation
-top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  benv::BuildEnv
+top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  a::Decorated CmdArgs  benv::BuildEnv
 {
   -- aggregate all flow def information
   local allFlowDefs :: FlowDefs = foldr(consFlow, nilFlow(), flatMap((.flowDefs), allLatestGrammars));
@@ -41,12 +42,11 @@ top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  benv::Bu
     computeInitialFlowTypes(allSpecDefs);
   
   -- Now, solve for flow types!!
-  local flowTypes1 :: Pair<[ProductionGraph] EnvTree<FlowType>> =
-    fullySolveFlowTypes(prodGraph, initialFT);
+  local flowTypes1 :: (EnvTree<ProductionGraph>, EnvTree<FlowType>) =
+    runFlowTypeInference(prodGraph, initialFT);
   
+  production finalGraphEnv :: EnvTree<ProductionGraph> = flowTypes1.fst;
   production flowTypes :: EnvTree<FlowType> = flowTypes1.snd;
-  production finalGraphs :: [ProductionGraph] = flowTypes1.fst;
-  production finalGraphEnv :: EnvTree<ProductionGraph> = directBuildTree(map(prodGraphToEnv, finalGraphs));
   
   g.productionFlowGraphs = finalGraphEnv;
   g.grammarFlowTypes = flowTypes;

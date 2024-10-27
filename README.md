@@ -12,7 +12,7 @@ extensions, with language features and analyses to support this.
 
 ## Using silver
 
-Silver requires Java 8, Ant 1.10.0, Bash, and wget. It can run on Linux, MacOS, and Windows Subsystem for Linux (WSL) in Windows 10.
+Silver requires Java 11, Ant 1.10.0, Bash, and wget. It can run on Linux, MacOS, and Windows Subsystem for Linux (WSL) in Windows 10.
 
 See [The Silver Install Guide](http://melt.cs.umn.edu/silver/install-guide)
 for detailed information on how to get Silver set up.

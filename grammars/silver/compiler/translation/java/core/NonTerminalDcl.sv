@@ -8,12 +8,12 @@ top::AGDcl ::= quals::NTDeclQualifiers 'nonterminal' id::Name tl::BracketedOptTy
   local inhVar :: String = "count_inh__ON__" ++ id.name;
   local synVar :: String = "count_syn__ON__" ++ id.name;
   
-  nondecorated local ntty::Type = nonterminalType(fName, map((.kindrep), tl.types), quals.data, quals.tracked);
+  nondecorated local ntty::Type = nonterminalType(fName, map((.kindrep), tl.types), quals.data, isThisTracked);
   local myAnnos :: [NamedSignatureElement] =
     annotationsForNonterminal(ntty, top.env);
 
   local commaIfAnnos :: String = if length(myAnnos)!=0 then "," else "";
-  local wantsTracking :: Boolean = typeWantsTracking(ntty, top.config, top.env);
+  local wantsTracking :: Boolean = ntty.isTracked;
 
   top.initProd := s"\t\tcommon.RTTIManager.registerNonterminal(${className}.nonterminalton);\n\n";
   top.initWeaving := s"""

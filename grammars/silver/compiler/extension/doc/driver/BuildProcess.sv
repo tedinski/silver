@@ -76,14 +76,14 @@ Either<String  Decorated CmdArgs> ::= args::[String]
 }
 
 aspect production compilation
-top::Compilation ::= g::Grammars  _  _  benv::BuildEnv
+top::Compilation ::= g::Grammars  _  _  a::Decorated CmdArgs  benv::BuildEnv
 {
-  local outputLoc::String = fromMaybe(benv.silverGen ++ "/doc/", top.config.docOutOption) ++ "/";
-  top.postOps <- if top.config.docGeneration then 
-                 [genDoc(top.config, grammarsToTranslate, outputLoc)]
+  local outputLoc::String = fromMaybe(benv.silverGen ++ "/doc/", a.docOutOption) ++ "/";
+  top.postOps <- if a.docGeneration then 
+                 [genDoc(a, grammarsToTranslate, outputLoc)]
                  else [];
-  top.postOps <- if top.config.printUndoc || top.config.countUndoc then 
-                 [printUndoc(top.config, grammarsToTranslate)]
+  top.postOps <- if a.printUndoc || a.countUndoc then 
+                 [printUndoc(a, grammarsToTranslate)]
                  else [];
 }
 

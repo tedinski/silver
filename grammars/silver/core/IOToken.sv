@@ -275,6 +275,52 @@ IOVal<String> ::= s::String i::IOToken
 }
 
 @{--
+  - Checks if a file is a jar file.
+  -
+  - @param s  The file to query.
+  - @param i  The "before" world-state token.
+  - @return  true if if the file is a jar file.  false otherwise.
+  -}
+function isJarFileT
+IOVal<Boolean> ::= s::String i::IOToken
+{
+  return error("Not Yet Implemented: isJarFileT");
+} foreign {
+  "java" : return "%i%.isJarFile(%s%)";
+}
+
+@{--
+  - Checks if a jar file contains an entry.
+  -
+  - @param jar  The jar file to query.
+  - @param entry  The entry to check for.
+  - @param i  The "before" world-state token.
+  - @return  true if if the jar file contains the entry.  false otherwise.
+  -}
+function jarContainsEntryT
+IOVal<Boolean> ::= jar::String entry::String i::IOToken
+{
+  return error("Not Yet Implemented: jarContainsEntryT");
+} foreign {
+  "java" : return "%i%.jarContainsEntry(%jar%, %entry%)";
+}
+
+@{-
+  - Reads a binary entry from a jar file.
+  - @param jar  The jar file to read from.
+  - @param entry  The entry to read.
+  - @param i  The "before" world-state token.
+  - @return  The contents of the entry.  May throw a java IO exception, which cannot be caught by Silver.
+  -}
+function readBinaryJarEntryT
+IOVal<ByteArray> ::= jar::String entry::String i::IOToken
+{
+  return error("Not Yet Implemented: readBinaryJarEntryT");
+} foreign {
+  "java" : return "%i%.readByteJarEntry(%jar%, %entry%)";
+}
+
+@{--
  - Return the current working directory.
  -
  - @param i  The "before" world-state token.

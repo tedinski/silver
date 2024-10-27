@@ -1,4 +1,4 @@
-imports common;
+imports ot_common;
 
 mainTestSuite oitests;
 
@@ -14,7 +14,7 @@ equalityTest(
 	case getOriginInfo(constructFour()) of
 	| just(originAndRedexOriginInfo(_, _,
 		[traceNote("tracing_origins:test.sv:10:15"), traceNote("tracing_origins:test.sv:14:27")], _,
-		originNotes=[traceNote("common:nat.sv:18:16")])) -> "OK"
+		originNotes=[traceNote("ot_common:nat.sv:18:16")])) -> "OK"
 	| ou -> genericShow(ou)
 	end,
 	"OK", String, oitests);

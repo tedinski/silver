@@ -1,90 +1,71 @@
 #!/usr/bin/env bash
 
-set -eu
+# This script does a deep rebuild of the Silver compiler, which should be done
+# when there are changes to the translation.
+# If you have made changes to core or the runtime that are needed in the rest of
+# the standard libraries or compiler, you should run ./make-core-runtime before
+# running this script.
 
-export SILVER_HOME=$(pwd)
-JVM_ARGS="-Xss20M -Xmx6G -jar ../jars/silver.compiler.composed.Default.jar"
-export ANT_OPTS=-Xss10M
+set -euo pipefail
 
-# just run this script, no parameters or options.
-# One new option: --newcore, for when the core FFI stuff has to change in tandem with the runtime
-# Only I should ever have to use this, as once it's done ONCE, fetch-jars will eliminate anyone else's need to do it.
+export SILVER_HOME=$PWD
 
 trap 'echo -e "\a"' EXIT
 
 mkdir -p build
-cd build
 
-if [ -d ../generated/bin/common ]; then
+if [ -d generated/bin/common ]; then
  # oh man, let's make sure stale runtimes aren't causing us serious problems here
- rm -rf ../generated/bin/common
+ rm -rf generated/bin/common
 fi
 
 # Modifications may have been made to how the translation is done
 
+echo "First pass, no need to be clean ..."
+echo ""
+echo " > Pass 1"
+echo "   Pass 2"
+echo "   Pass 3"
+echo ""
+
+# There might be translation changes with corresponding runtime changes,
+# so we hold off on recompling core and the runtime until the second pass.
+
+
+# Doesn't need to be clean, since we are starting with a known good state of generated/.
+# Only pass along flags like --clean, --mwda, etc. in the first pass.
+NOINSTALL=1 ./make-stdlib "$@"
+./make-compiler "$@"
+
+
 echo "One full cycle ..."
 echo ""
-echo " > Silver Build"
-echo "   Silver Build"
-echo "   Runtime Build"
-echo "   Silver Build"
+echo "   Pass 1"
+echo " > Pass 2"
+echo "   Pass 3"
 echo ""
-time java $JVM_ARGS --relative-jar --clean silver:compiler:composed:Default
-ant
-mv silver.compiler.composed.Default.jar ../jars/
 
-# Modifications may need to be made to how core translates, to accomodate translation/runtime changes
-if [ $# -gt 0 ] && [ "$1" == "--newcore" ]; then
-  echo -e "\a"
-  echo " Updates to core should be made NOW, to accomodate a new runtime... "
-  read
-fi
+# Clean out stale generated files from the last pass
+rm -rf generated/*/
 
-# Should backup old jars here
-
-echo ""
-echo "   Silver Build"
-echo " > Silver Build"
-echo "   Runtime Build"
-echo "   Silver Build"
-echo ""
-echo "Start ..."
-# Also building silver:xml:ast here since the runtime depends on that
-time java $JVM_ARGS --relative-jar --clean silver:compiler:composed:Default silver:xml:ast
-
-# Modifications may have been made to the runtime
-
-echo "No ant yet! Let's go build the runtime! ..."
-echo ""
-echo "   Silver Build"
-echo "   Silver Build"
-echo " > Runtime Build"
-echo "   Silver Build"
-echo ""
-cd ../runtime/java
-ant
-mv SilverRuntime.jar ../../jars/
-cd ../../build
-echo "Now finish ..."
-ant
-mv silver.compiler.composed.Default.jar ../jars/
+# Build everything, including the runtime now.
+time ./make-all
 
 # Finally, we should have a fully working binary on all the new code. Run it again to reach a fixed point:
 
 echo "One more full cycle ..."
 echo ""
-echo "   Silver Build"
-echo "   Silver Build"
-echo "   Runtime Build"
-echo " > Silver Build"
+echo "   Pass 1"
+echo "   Pass 2"
+echo " > Pass 3"
 echo ""
-time java -ea $JVM_ARGS --relative-jar --clean silver:compiler:composed:Default
-ant
-mv silver.compiler.composed.Default.jar ../jars/
 
-# If the last build failed, should restore backup jars
+# Clean out stale generated files from the last pass
+rm -rf generated/*/
+
+time ./make-all
 
 echo "Cleaning out stale runtime class files..."
-rm -rf ../generated/bin/common
+rm -rf generated/bin/common
 
 echo "deep-rebuild success"

@@ -39,7 +39,7 @@ top::Module ::= need::[String]
                 compiledGrammars::EnvTree<Decorated RootSpec>
                 grammarDependencies::[String]
                 asPrepend::String
-                onlyFilter::[String]
+                onlyFilter::Maybe<[String]>
                 hidingFilter::[String]
                 withRenames::[Pair<String String>]
 {
@@ -49,10 +49,10 @@ top::Module ::= need::[String]
     moduleExportedDefs(compiledGrammars, grammarDependencies, need, seen);
   
   local defs :: Defs = foldr(consDefs, nilDefs(), med.defs);
-  defs.filterItems = onlyFilter;
+  defs.filterItems = onlyFilter.fromJust;
 
   local defs_after_only :: Defs =
-    if null(onlyFilter) then ^defs else defs.filterOnly;
+    if !onlyFilter.isJust then ^defs else defs.filterOnly;
   defs_after_only.filterItems = hidingFilter;
 
   local defs_after_hiding :: Defs =
@@ -240,7 +240,7 @@ top::ModuleName ::= pkg::QName
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", [], [], []);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", nothing(), [], []);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -259,7 +259,7 @@ top::ModuleExpr ::= pkg::QName
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", [], [], []);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", nothing(), [], []);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -275,7 +275,7 @@ top::ModuleExpr ::= pkg::QName 'with' wc::WithElems
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", [], [], wc.envMaps);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", nothing(), [], wc.envMaps);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -291,7 +291,23 @@ top::ModuleExpr ::= pkg::QName 'only' ns::NameList
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", ns.names, [], []);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", just(ns.names), [], []);
+  
+  top.errors := m.errors;
+  top.defs := m.defs;
+  top.occursDefs := m.occursDefs;
+} action {
+  insert semantic token IdGrammarName_t at pkg.nameLoc;
+}
+
+concrete production moduleOnlyNothing
+top::ModuleExpr ::= pkg::QName 'only'
+{
+  top.unparse = pkg.unparse ++ " only ";
+  top.moduleNames := [pkg.name];
+
+  production attribute m :: Module;
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", just([]), [], []);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -307,7 +323,7 @@ top::ModuleExpr ::= pkg::QName 'only' ns::NameList 'with' wc::WithElems
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", ns.names, [], wc.envMaps);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", just(ns.names), [], wc.envMaps);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -323,7 +339,7 @@ top::ModuleExpr ::= pkg::QName 'hiding' ns::NameList
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", [], ns.names, []);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", nothing(), ns.names, []);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -339,7 +355,7 @@ top::ModuleExpr ::= pkg::QName 'hiding' ns::NameList 'with' wc::WithElems
   top.moduleNames := [pkg.name];
 
   production attribute m :: Module;
-  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", [], ns.names, wc.envMaps);
+  m = module([pkg.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, "", nothing(), ns.names, wc.envMaps);
   
   top.errors := m.errors;
   top.defs := m.defs;
@@ -355,7 +371,7 @@ top::ModuleExpr ::= pkg1::QName 'as' pkg2::QName
   top.moduleNames := [pkg1.name];
 
   production attribute m :: Module;
-  m = module([pkg1.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, pkg2.name, [], [], []);
+  m = module([pkg1.name], [top.grammarName], top.compiledGrammars, top.grammarDependencies, pkg2.name, nothing(), [], []);
   
   top.errors := m.errors;
   top.defs := m.defs;

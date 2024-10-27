@@ -20,7 +20,7 @@ top::AGDcl ::= 'abstract' 'production' id::Name d::ProductionImplements ns::Prod
 
   local fnnt :: String = makeNTName(ntName);
   local isData :: Boolean = namedSig.outputElement.typerep.isData;
-  local wantsTracking :: Boolean = typeWantsTracking(namedSig.outputElement.typerep, top.config, top.env);
+  local wantsTracking :: Boolean = namedSig.outputElement.typerep.isTracked;
 
   local ntDeclPackage :: String = implode(".", init(explode(".", fnnt)));
   local typeNameSnipped :: String = last(explode(":", namedSig.outputElement.typerep.typeName));

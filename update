@@ -15,14 +15,6 @@ printf "%s\n" "-- Updating jar files"
 
 mkdir -p generated
 
-if [ -d generated/src ]; then
-  printf "%s\n" "-- Deleting old generated file cache"
-  for file in generated/*/*; do
-    printf "%s\n" $file
-    rm -rf $file
-  done
-fi
-
 if [ -d /export/scratch ] && [ ! -d generated/src ]; then
   printf "%s\n" "-- Creating initial generated cache symlinks to local disk"
   CACHE=/export/scratch/${USER}-deletable-cache

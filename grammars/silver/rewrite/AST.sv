@@ -1,7 +1,5 @@
 grammar silver:rewrite;
 
-exports silver:reflect; -- Needed by the extension, so just export it here.
-
 inherited attribute givenStrategy::Strategy occurs on AST, ASTs, NamedASTs, NamedAST;
 synthesized attribute allResult<a>::Maybe<a>;
 synthesized attribute someResult<a>::Maybe<a>;

@@ -1,5 +1,7 @@
 grammar silver:langutil:reflect;
 
+import silver:langutil:reflect:serialize only;  -- Include this in the silver.langutil artifact.
+
 @{-
  - Use reflection to get the pp or unparse of an unknown term,
  - falling back to use the reflective pp.

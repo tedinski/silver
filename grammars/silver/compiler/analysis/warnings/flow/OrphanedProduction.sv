@@ -47,7 +47,7 @@ top::AGDcl ::= 'abstract' 'production' id::Name d::ProductionImplements ns::Prod
     else [];
 
   -- This check is about orphaned implementation prods that don't forward properly,
-  -- this seems like a reasonablke place to put it.
+  -- this seems like a reasonable place to put it.
   top.errors <-
     if null(body.errors ++ ns.errors)
     && top.config.warnFwd

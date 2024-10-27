@@ -26,7 +26,7 @@
   </target>
 
   <target name='build' depends='init'>
-    <javac debug='on' classpathref='compile.classpath' srcdir='${src}:${grammars}' destdir='${bin}' includeantruntime='false' source='1.8' target='1.8' release='8'>
+    <javac debug='on' classpathref='compile.classpath' srcdir='${src}:${grammars}' destdir='${bin}' includeantruntime='false' release='11'>
       <compilerarg value="-Xlint:unchecked" />
       <include name='common/**/*.java' />
       <include name='silver/core/*.java' />
@@ -35,8 +35,12 @@
   </target>
   
   <target name='dist' depends='build'>
-    <jar destfile='${dist}/SilverRuntime.jar' basedir='${bin}' compress='true' level='9'>
+    <jar destfile='${dist}/silver.core.jar' basedir='${bin}' compress='true' level='9'>
       <include name='common/**/*.class' />
+      <include name='silver/core/*.class' />
+      <fileset dir='../../generated/src/' includes='silver/core/Silver.svi' />
+      <include name='silver/xml/ast/*.class' />
+      <fileset dir='../../generated/src/' includes='silver/xml/ast/Silver.svi' />
       <manifest>
         <attribute name='Built-By' value='${user.name}'/>
         <attribute name='Bundle-Name' value='Silver Runtime support'/>

@@ -2,16 +2,16 @@ grammar silver:compiler:driver:util;
 
 import silver:compiler:definition:core only jarName, grammarErrors;
 import silver:util:treemap as map;
+import silver:util:cmdargs;
 
-synthesized attribute initRecompiledGrammars::[Decorated RootSpec];
+synthesized attribute initRecompiledGrammars::[String];
+synthesized attribute initDirtyGrammars::[String];
 
-nonterminal Compilation with config, postOps, grammarList, allGrammars, initRecompiledGrammars, recompiledGrammars;
-propagate config on Compilation;
-
-flowtype postOps {config} on Compilation;
+data nonterminal Compilation with postOps, grammarList, reGrammarList, allGrammars, recompiledGrammars, initRecompiledGrammars, initDirtyGrammars;
 
 synthesized attribute postOps :: [DriverAction] with ++;
 synthesized attribute grammarList :: [Decorated RootSpec];
+synthesized attribute reGrammarList :: [Decorated RootSpec];
 synthesized attribute allGrammars :: [Decorated RootSpec];
 
 {--
@@ -24,19 +24,25 @@ synthesized attribute allGrammars :: [Decorated RootSpec];
  - @param g  A list of grammar initially read in
  - @param r  A list of grammars that we re-compiled, due to dirtiness in 'g'
  - @param buildGrammars  The initial grammars requested built
+ - @param a  The command line arguments
  - @param benv  The build configuration
  -}
 abstract production compilation
-top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  benv::BuildEnv
+top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  a::Decorated CmdArgs  benv::BuildEnv
 {
   -- the list of rootspecs coming out of g
   top.grammarList = g.grammarList;
+  -- the list of rootspecs coming out of r
+  top.reGrammarList = r.grammarList;
   -- all compiled rootspecs from g and r
   top.allGrammars = g.grammarList ++ r.grammarList;
-  -- the initial list of rootspecs from g that were re-compiled
-  top.initRecompiledGrammars = keepGrammars(grammarsDependedUpon, g.recompiledGrammars);
-  -- the list of re-compiled rootspecs from g and r
-  top.recompiledGrammars := top.initRecompiledGrammars ++ r.grammarList;
+    -- the list of re-compiled rootspecs from g and r
+  top.recompiledGrammars := keepGrammars(grammarsDependedUpon, g.recompiledGrammars) ++ r.grammarList;
+  -- the initial list of grammar names from g that were recompiled
+  top.initRecompiledGrammars = map((.declaredName), g.recompiledGrammars);
+  -- the initial list of grammar names from g known to be in need of recompilation
+  top.initDirtyGrammars = nub(removeAll(top.initRecompiledGrammars,
+    flatMap((.dirtyGrammars), keepGrammars(grammarsDependedUpon, g.grammarList))));
   
   -- All grammars that were compiled due to being dirty or dependencies of dirty grammars
   -- see all the other initially compiled grammars.
@@ -55,6 +61,9 @@ top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  benv::Bu
   -- See above comments.
   -- Assumption: if a grammar has an up-to-date interface file, then its dependencies are unchanged.
   r.dependentGrammars = g.dependentGrammars;
+
+  g.config = a;
+  r.config = a;
   
   -- This determines what is actually needed in this build.
   -- For example, it excludes "options" and conditional builds that aren't
@@ -78,9 +87,13 @@ top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  benv::Bu
   top.postOps := [];
 }
 
-nonterminal Grammars with config, compiledGrammars, productionFlowGraphs, grammarFlowTypes, dependentGrammars, grammarList, dirtyGrammars, recompiledGrammars, jarName;
+nonterminal Grammars with
+  config, compiledGrammars, productionFlowGraphs, grammarFlowTypes, dependentGrammars,
+  grammarList, dirtyGrammars, recompiledGrammars, jarName, includedJars;
 
-propagate config, productionFlowGraphs, grammarFlowTypes, dirtyGrammars, recompiledGrammars, jarName, dependentGrammars on Grammars;
+propagate
+  config, productionFlowGraphs, grammarFlowTypes, dirtyGrammars, recompiledGrammars, jarName, dependentGrammars, includedJars
+  on Grammars;
 
 abstract production consGrammars
 top::Grammars ::= h::RootSpec  t::Grammars

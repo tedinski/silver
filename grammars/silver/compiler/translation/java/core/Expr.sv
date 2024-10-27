@@ -508,7 +508,7 @@ top::Expr ::= '@' e::Expr
 {
   top.translation =
     s"new ${top.finalType.transType}.DecorationSiteWrapper(${
-      if typeWantsTracking(top.finalType, top.config, top.env)
+      if top.finalType.isTracked
       then makeOriginContextRef(top) ++ ".makeNewConstructionOrigin(true), "
       else ""}${e.translation})";
   top.lazyTranslation = wrapThunk(top.translation, top.frame.lazyApplication);
@@ -547,11 +547,11 @@ aspect production undecExpr
 top::Expr ::= '^' e::Expr
 {
   top.translation =
-    if typeWantsTracking(top.finalType, top.config, top.env)
+    if top.finalType.isTracked
     then s"((${top.finalType.transType})((common.Tracked)${e.translation}.undecorate()).duplicate(${makeOriginContextRef(top)}))"
     else s"((${top.finalType.transType})${e.translation}.undecorate())";
   top.lazyTranslation =
-    if typeWantsTracking(top.finalType, top.config, top.env)
+    if top.finalType.isTracked
     then s"common.Thunk.transformUndecorate(${e.lazyTranslation}, ${makeOriginContextRef(top)})"
     else s"common.Thunk.transformUndecorate(${e.lazyTranslation})";
 }

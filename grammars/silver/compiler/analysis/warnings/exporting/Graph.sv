@@ -43,10 +43,10 @@ Either<String  Decorated CmdArgs> ::= args::[String]
   -- not omitting from descriptions deliberately!
 }
 aspect production compilation
-top::Compilation ::= g::Grammars  _  _  benv::BuildEnv
+top::Compilation ::= g::Grammars  _  _  a::Decorated CmdArgs  benv::BuildEnv
 {
-  top.postOps <- if top.config.dumpDepGraph then [dumpDepGraphAction(g.grammarList)] else [];
-  top.postOps <- if top.config.dumpExportGraph then [dumpExportGraphAction(g.grammarList)] else [];
+  top.postOps <- if a.dumpDepGraph then [dumpDepGraphAction(g.grammarList)] else [];
+  top.postOps <- if a.dumpExportGraph then [dumpExportGraphAction(g.grammarList)] else [];
 }
 
 abstract production dumpDepGraphAction

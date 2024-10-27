@@ -85,6 +85,7 @@ public class SilverLanguageServer implements LanguageServer, LanguageClientAware
         }
 
         // Set up the Silver standard library grammars folder
+        // TODO: Include the standard lib interface files and load them here instead.
         Path silverGrammars;
         try {
             silverGrammars = Files.createTempDirectory("silver_grammars");

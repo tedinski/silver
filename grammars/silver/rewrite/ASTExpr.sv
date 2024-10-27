@@ -2,6 +2,7 @@ grammar silver:rewrite;
 
 imports silver:langutil;
 imports silver:langutil:pp;
+imports silver:reflect;
 
 inherited attribute substitutionEnv::[Pair<String AST>];
 synthesized attribute value::AST;

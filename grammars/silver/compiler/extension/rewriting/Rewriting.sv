@@ -3,6 +3,7 @@ grammar silver:compiler:extension:rewriting;
 imports silver:core hiding id;
 imports silver:util:treeset as ts;
 
+imports silver:reflect;
 imports silver:rewrite hiding repeat;
 imports silver:compiler:metatranslation;
 imports silver:langutil:pp;

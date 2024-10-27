@@ -90,7 +90,3 @@ inherited attribute grammarFlowTypes :: EnvTree<FlowType>;
  - The path to the origin of this root spec
  -}
 synthesized attribute grammarSource :: String;
-{--
- - The modification time of the source .sv files of this grammar.
- -}
-synthesized attribute grammarTime :: Integer;

@@ -1,4 +1,4 @@
-imports common;
+imports ot_common;
 
 mainTestSuite oitests;
 

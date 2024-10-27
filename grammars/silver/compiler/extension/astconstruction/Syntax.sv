@@ -8,11 +8,11 @@ imports silver:compiler:definition:type:syntax;
 imports silver:compiler:modification:list;
 imports silver:compiler:extension:patternmatching;
 
-exports silver:reflect:concretesyntax;
+exports silver:langutil:reflect:concretesyntax;
 
 concrete production quoteAST
 top::Expr ::= 'AST' '{' ast::AST_c '}'
-layout {silver:reflect:concretesyntax:WhiteSpace}
+layout {silver:langutil:reflect:concretesyntax:WhiteSpace}
 {
   top.unparse = s"AST {${ast.unparse}}";
   forwards to translate(reflect(ast.ast));
@@ -20,7 +20,7 @@ layout {silver:reflect:concretesyntax:WhiteSpace}
 
 concrete production quoteASTPattern
 top::Pattern ::= 'AST' '{' ast::AST_c '}'
-layout {silver:reflect:concretesyntax:WhiteSpace}
+layout {silver:langutil:reflect:concretesyntax:WhiteSpace}
 {
   top.unparse = s"AST {${ast.unparse}}";
   forwards to translatePattern(reflect(ast.ast));

@@ -153,6 +153,13 @@ String ::= m::Message
 fun messagesToString String ::= msgs::[Message] =
   implode("\n", map(showMessage, sortBy(messageLte, msgs)));
 
+@{--
+ - Returns a list of strings, without doing the check for an origin in extension-generated code.
+ - This is useful for pretty-printing error productions to avoid a circularity.
+ -}
+fun messagesToStringNoOriginsCheck String ::= msgs::[Message] =
+  implode("\n", map((.output), sortBy(messageLte, msgs)));
+
 -- for use with sortBy
 -- not an instance of Eq/Ord for now, does it really make sense to compare messages for equality?
 fun messageLte Boolean ::= m1::Message m2::Message = m1.where <= m2.where;

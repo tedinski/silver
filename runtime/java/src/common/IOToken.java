@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.jar.JarFile;
+import java.util.jar.JarEntry;
 import silver.core.NIOVal;
 import silver.core.Pioval;
 import silver.core.Pjust;
@@ -135,6 +137,9 @@ public final class IOToken implements Typed {
 		return writeFileActual(filename, content, false);
 	}
 
+	/**
+	 * <pre>IOVal<ByteArray> ::= s::String i::IO</pre>
+	 */
 	public NIOVal readByteFile(StringCatter filename) {
 		try {
 			Path path = Paths.get(filename.toString());
@@ -209,6 +214,55 @@ public final class IOToken implements Typed {
 		try {
 			byte[] b = Files.readAllBytes(Paths.get(filename.toString()));
 			return this.wrap(new StringCatter(new String(b)));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * <pre>IOVal<Boolean> ::= s::String i::IO</pre>
+	 */
+	public NIOVal isJarFile(StringCatter filename) {
+        try {
+			Path path = Paths.get(filename.toString());
+			// Check if the file exists
+			if (!Files.exists(path)) {
+				return this.wrap(false);
+			}
+            // Check if the file's content-type is 'application/java-archive'
+            String contentType = Files.probeContentType(path);
+            return this.wrap(contentType != null && contentType.equals("application/java-archive"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+	}
+
+	/**
+	 * <pre>IOVal<Boolean> ::= s::String e::String i::IO</pre>
+	 */
+	public NIOVal jarContainsEntry(StringCatter jarfile, StringCatter entry) {
+		try {
+			// Check if the entry exists in the jar file
+			try (JarFile jar = new JarFile(jarfile.toString())) {
+				return this.wrap(jar.getEntry(entry.toString()) != null);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * <pre>IOVal<ByteArray> ::= s::String e::String i::IO</pre>
+	 */
+	public NIOVal readByteJarEntry(StringCatter jarfile, StringCatter entry) {
+		try {
+			// Read the entry from the jar file
+			try (JarFile jar = new JarFile(jarfile.toString())) {
+				try (InputStream is = jar.getInputStream(jar.getEntry(entry.toString()))) {
+					byte[] b = is.readAllBytes();
+					return this.wrap(b);
+				}
+			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

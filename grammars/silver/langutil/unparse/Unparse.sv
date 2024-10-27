@@ -1,6 +1,6 @@
 grammar silver:langutil:unparse;
 
-imports silver:reflect:util;
+imports silver:reflect;
 imports silver:langutil;
 imports silver:langutil:pp;
 imports silver:util:treemap as map;

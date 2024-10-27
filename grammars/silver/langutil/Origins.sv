@@ -1,6 +1,7 @@
 grammar silver:langutil;
 
 import silver:langutil:pp;
+import silver:langutil:reflect;
 import silver:reflect;
 
 attribute pp occurs on OriginInfoType;

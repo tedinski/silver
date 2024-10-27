@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-case `uname` in
+set -euo pipefail
+
+case $(uname) in
 *Darwin*)
   READLINK=greadlink
-  if [ ! -f `which greadlink` ]; then
+  if [ ! -f "$(which greadlink)" ]; then
     echo "Missing greadlink. Please install coreutils:"
     echo -e "\tbrew install coreutils"
     exit 4
@@ -14,8 +16,8 @@ case `uname` in
   ;;
 esac
 
-# ~/bin/silver should be a link to somewhere, find out where!
-ME=$(${READLINK} -f "${BASH_SOURCE}")
+# ~/bin/silver-custom should be a link to somewhere, find out where!
+ME=$(${READLINK} -f "${BASH_SOURCE[0]}")
 
 # Set our home
 export SILVER_HOME=${ME/support\/bin\/silver-custom/}
@@ -32,4 +34,17 @@ fi
 # Set flags if not overriden in environment
 SVJVM_FLAGS=${SVJVM_FLAGS:-"-Xmx5000M -Xss20M"}
 
-java $SVJVM_FLAGS -jar "$SILVER" "$@" && ant
+# Save the command line arguments to pass to Silver
+SV_ARGS=("$@")
+
+# Tell ant if we named the build file something else
+while [ "$#" -gt 0 ]; do
+    if [ "$1" = --build-xml-location ]; then
+        export ANT_ARGS="-buildfile $2"
+        shift
+    fi
+    shift
+done
+
+# shellcheck disable=SC2086
+java $SVJVM_FLAGS -jar "$SILVER" "${SV_ARGS[@]}" && ant

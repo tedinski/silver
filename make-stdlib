@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Build the Silver standard libraries.
+# Note that this does not rebuild the silver:core and the runtime.
+
+set -euo pipefail
+
+export SILVER_HOME=$PWD
+JVM_ARGS=(-Xss20M -Xmx1G -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --relative-jar "$@")
+export GRAMMAR_PATH="../grammars"
+export ANT_OPTS=-Xss10M
+
+mkdir -p build
+cd build
+
+# Use silver.core.jar from build/ if it exists:
+if [ -f silver.core.jar ]; then
+    export GRAMMAR_PATH="$GRAMMAR_PATH:silver.core.jar"
+else
+    export GRAMMAR_PATH="$GRAMMAR_PATH:../jars/silver.core.jar"
+fi
+
+for lib in util langutil rewrite regex; do
+    echo    "=== BUILD LIBRARY $lib ==="
+    time java "${JVM_ARGS[@]}" silver:$lib
+    ant
+    export GRAMMAR_PATH="$GRAMMAR_PATH:silver.$lib.jar"
+done
+
+if [ -z "${NOINSTALL:-}" ]; then
+    echo    "=== INSTALL NEW LIBRARIES ==="
+    mv ./*.jar ../jars
+fi

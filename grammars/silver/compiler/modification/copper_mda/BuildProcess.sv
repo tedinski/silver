@@ -4,21 +4,21 @@ import silver:compiler:definition:concrete_syntax:copper as copper;
 import silver:compiler:driver;
 import silver:compiler:translation:java:driver;
 import silver:compiler:translation:java:core only makeParserName, makeName;
-import silver:reflect:nativeserialize;
+import silver:reflect;
 import silver:util:cmdargs;
 
 aspect production compilation
-top::Compilation ::= g::Grammars  _  _  benv::BuildEnv
+top::Compilation ::= g::Grammars  _  _  a::Decorated CmdArgs  benv::BuildEnv
 {
   -- TODO: consider examining all grammars, not just grammarsToTranslate?
   -- I believe this choice was originally because we weren't serializing MdaSpecs to
   -- interface files, but I think we could easily start doing that new with the new serialization code?
-  top.postOps <- map(runMdaAction(_, g.compiledGrammars, benv.silverGen ++ "src/"),
+  top.postOps <- map(runMdaAction(_, g.compiledGrammars, benv.silverGen ++ "src/", a),
     flatMap((.mdaSpecs), grammarsToTranslate));
 }
 
 abstract production runMdaAction
-top::DriverAction ::= spec::MdaSpec  compiledGrammars::EnvTree<Decorated RootSpec>  silverGen::String
+top::DriverAction ::= spec::MdaSpec  compiledGrammars::EnvTree<Decorated RootSpec>  silverGen::String  cmdArgs::Decorated CmdArgs
 {
   spec.compiledGrammars = compiledGrammars;
 
@@ -32,9 +32,12 @@ top::DriverAction ::= spec::MdaSpec  compiledGrammars::EnvTree<Decorated RootSpe
       mkdir(outDir);
       eprintln("Running MDA for " ++ spec.fullName ++ ".");
       ret::Integer <- copper:compileParserBean(specCstAst.copperParser,
-        makeName(spec.sourceGrammar), parserName, true, "", false, parserName ++ ".html", false);
+        makeName(spec.sourceGrammar), parserName, true, "",
+        cmdArgs.forceCopperDump, parserName ++ ".copperdump.html",
+        false  -- TODO: Make Copper support XML dump for MDA specs
+      );
       when_(ret == 0,
-        case nativeSerialize(^specCstAst) of
+        case serializeBytes(^specCstAst) of
         | left(e) -> error("BUG: specCstAst was not serializable; hopefully this was caused by the most recent change to the copper_mda modification: " ++ e)
         | right(dump) -> writeBinaryFile(dumpFile, dump)
         end);
@@ -46,21 +49,19 @@ top::DriverAction ::= spec::MdaSpec  compiledGrammars::EnvTree<Decorated RootSpe
       return 1;
     };
 
-  top.run = do {
-    dumpFileExists :: Boolean <- isFile(dumpFile);
-    if dumpFileExists then do {
-      dumpFileContents::ByteArray <- readBinaryFile(dumpFile);
-      let dumpMatched::Either<String Boolean> = map(eq(^specCstAst, _), nativeDeserialize(dumpFileContents));
-      if dumpMatched == right(true) then do {
-        eprintln("MDA test " ++ spec.fullName ++ " is up to date.");
-        return 0;
-      } else do {
-        buildGrammar;
-      };
-    } else do {
-      buildGrammar;
+  top.run =
+    if cmdArgs.doClean || cmdArgs.forceCopperDump --|| cmdArgs.copperXmlDump
+    then buildGrammar
+    else do {
+      dumpFileExists :: Boolean <- isFile(dumpFile);
+      if dumpFileExists then do {
+        dumpFileContents::ByteArray <- readBinaryFile(dumpFile);
+        if deserializeBytes(dumpFileContents) == right(^specCstAst) then do {
+          eprintln("MDA test " ++ spec.fullName ++ " is up to date.");
+          return 0;
+        } else buildGrammar;
+      } else buildGrammar;
     };
-  };
 
   top.order = 5;
 }

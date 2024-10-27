@@ -5,6 +5,9 @@ imports silver:rewrite;
 imports silver:langutil;
 imports silver:langutil:pp;
 
+-- Not used here, but make sure it gets included in the artifact:
+import silver:regex:concrete_syntax only;
+
 synthesized attribute altPP::Document;
 synthesized attribute seqPP::Document;
 synthesized attribute basePP::Document;

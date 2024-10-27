@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Build all grammars in a single invocation of Silver, but don't translate.
+# This is quicker than make-all for running analyses/refactorings.
+# Run with --clean --mwda to run the modular well definedness analysis.
+
+set -euo pipefail
+
+BUILDGRAMMAR=${BUILDGRAMMAR:-"silver:compiler:composed:Default"}
+
+export SILVER_HOME=$PWD
+JVM_ARGS=(-Xss30M -Xmx6G -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --dont-translate "$@")
+export GRAMMAR_PATH="../grammars"
+
+mkdir -p build
+cd build
+
+time java "${JVM_ARGS[@]}" $BUILDGRAMMAR
+

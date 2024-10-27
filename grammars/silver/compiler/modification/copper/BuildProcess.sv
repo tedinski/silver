@@ -3,7 +3,7 @@ grammar silver:compiler:modification:copper;
 import silver:compiler:definition:concrete_syntax:copper as copper;
 import silver:compiler:driver;
 import silver:compiler:translation:java:driver;
-import silver:reflect:nativeserialize;
+import silver:reflect;
 import silver:util:cmdargs;
 
 {---------------------------------}
@@ -67,20 +67,14 @@ Either<String  Decorated CmdArgs> ::= args::[String]
 -- Skips parser specs from SILVER_HOST_GEN
 -- The way that feature works, they shouldn't need regeneration.
 fun obtainParserSpecs [ParserSpec] ::= g::Decorated RootSpec  benv::BuildEnv =
-  if g.generateLocation != benv.silverGen then []
+  if g.generateLocation != just(benv.silverGen) then []
   else g.parserSpecs;
 
 aspect production compilation
-top::Compilation ::= g::Grammars  _  _  benv::BuildEnv
+top::Compilation ::= g::Grammars  _  _  a::Decorated CmdArgs  benv::BuildEnv
 {
-  -- Add the Copper compiler to the CLASSPATH. In theory, this is only
-  -- necessary when building Silver (or other programs that invoke the Copper
-  -- compiler directly), and could be replaced with the Copper runtime
-  -- otherwise. If we re-do the build system, we could make the Copper compiler
-  -- JAR not include the runtime, link against the runtime here, and make
-  -- importing the silver:compiler:definition:concrete_syntax:copper grammar
-  -- add the Copper compiler back.
-  classpathRuntime <- ["${sh}/jars/CopperCompiler.jar"];
+  -- Add the Copper runtime to the CLASSPATH.
+  classpathRuntime <- ["${sh}/jars/CopperRuntime.jar"];
 
   -- Get the parsers.
   production allParsers :: [ParserSpec] =
@@ -96,7 +90,7 @@ top::Compilation ::= g::Grammars  _  _  benv::BuildEnv
 
   -- Generate the .java files.
   top.postOps <-
-    map(buildParserAction(_, g.compiledGrammars, benv.silverGen, top.config), allParsers);
+    map(buildParserAction(_, g.compiledGrammars, benv.silverGen, a), allParsers);
 }
 
 {------------------------------}
@@ -123,10 +117,6 @@ top::DriverAction ::= spec::ParserSpec  compiledGrammars::EnvTree<Decorated Root
   local parserName::String = makeParserName(spec.fullName);
   local dumpFile::String = outDir ++ parserName ++ ".copperdump";
 
-
-  -- cmdArgs _could_ be top.config, if the driver were to decorate DriverAction
-  -- with config. However, the driver doesn't, and it seems like it'd be a pain
-  -- to make it do so.
   nondecorated local buildGrammar::IO<Integer> =
     if null(specCstAst.cstErrors) then do {
       if cmdArgs.noJavaGeneration then do {
@@ -138,9 +128,9 @@ top::DriverAction ::= spec::ParserSpec  compiledGrammars::EnvTree<Decorated Root
         ret::Integer <- copper:compileParserBean(specCstAst.copperParser,
           makeName(spec.sourceGrammar), parserName, false,
           outDir ++ parserName ++ ".java", cmdArgs.forceCopperDump,
-          parserName ++ ".html", cmdArgs.copperXmlDump);
+          parserName ++ ".copperdump.html", cmdArgs.copperXmlDump);
         when_(ret == 0,
-          case nativeSerialize(^specCstAst) of
+          case serializeBytes(^specCstAst) of
           | left(e) -> error("BUG: specCstAst was not serializable; hopefully this was caused by the most recent change to the copper modification: " ++ e)
           | right(dump) -> writeBinaryFile(dumpFile, dump)
           end);
@@ -152,21 +142,19 @@ top::DriverAction ::= spec::ParserSpec  compiledGrammars::EnvTree<Decorated Root
       return 1;
     };
 
-  top.run = do {
-    dumpFileExists :: Boolean <- isFile(dumpFile);
-    if !cmdArgs.doClean && dumpFileExists then do {
-      dumpFileContents::ByteArray <- readBinaryFile(dumpFile);
-      let dumpMatched::Either<String Boolean> = map(eq(^specCstAst, _), nativeDeserialize(dumpFileContents));
-      if dumpMatched == right(true) && !cmdArgs.forceCopperDump then do {
-        eprintln("Parser " ++ spec.fullName ++ " is up to date.");
-        return 0;
-      } else do {
-        buildGrammar;
-      };
-    } else do {
-      buildGrammar;
+  top.run =
+    if cmdArgs.doClean || cmdArgs.forceCopperDump || cmdArgs.copperXmlDump
+    then buildGrammar
+    else do {
+      dumpFileExists :: Boolean <- isFile(dumpFile);
+      if dumpFileExists then do {
+        dumpFileContents::ByteArray <- readBinaryFile(dumpFile);
+        if deserializeBytes(dumpFileContents) == right(^specCstAst) then do {
+          eprintln("Parser " ++ spec.fullName ++ " is up to date.");
+          return 0;
+        } else buildGrammar;
+      } else buildGrammar;
     };
-  };
 
   top.order = 7;
 }

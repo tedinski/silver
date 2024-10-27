@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 
 // Import the language client, language client options and server options from VSCode language client.
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
@@ -9,6 +10,9 @@ let client: LanguageClient;
 // Name of the launcher class which contains the main.
 const main: string = 'StdioLauncher';
 
+// TODO: should activate be an async function, and should this be the version from fs/promises?
+// https://code.visualstudio.com/api/references/vscode-api makes it sound like Extension<T>.activate
+// should return a Thenable<T>
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "silverlsp" is now active!');
 
@@ -25,15 +29,26 @@ export function activate(context: vscode.ExtensionContext) {
 		let excecutable: string = path.join(JAVA_HOME, 'bin', 'java');
 
 		// path to the launcher.jar
+		let classPath = [];
+
+		let compilerJars: string = config.get('compilerJar') || "";
 		let launcherJar: string = path.join(__dirname, '..', 'launcher', 'launcher.jar');
-		let compilerJar: string = config.get('compilerJar') || "";
-		if (compilerJar && !compilerJar.startsWith("/") && vscode.workspace.workspaceFolders !== undefined) {
-			compilerJar = path.join(vscode.workspace.workspaceFolders[0].uri.path, "/", compilerJar);
+		for (let compilerJar of compilerJars.split(':')) {
+			if (!compilerJar.startsWith("/") && vscode.workspace.workspaceFolders !== undefined) {
+				compilerJar = path.join(vscode.workspace.workspaceFolders[0].uri.path, "/", compilerJar);
+			}
+			classPath.push(compilerJar);
 		}
-		let classPath = [launcherJar];
-		if (compilerJar) {
-			classPath.unshift(compilerJar);
+		classPath.push(launcherJar);
+
+		for (let jar of classPath) {
+			// Check if the jar file exists, and if not, raise an error.
+			if (!fs.existsSync(jar)) {
+				vscode.window.showErrorMessage(`Jar file not found: ${jar}`);
+				return;
+			}
 		}
+
 		console.log(classPath);
 		let jvmArgs: string = config.get('jvmArgs') || "";
 		const args: string[] = [

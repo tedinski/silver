@@ -10,7 +10,7 @@
 export  SILVER_HOME="../../../.."
 
 java -Xss8M -Xmx1000M -jar $SILVER_HOME/jars/silver.compiler.composed.Default.jar \
-     $@ \
+     -I "$SILVER_HOME/grammars" $@ \
      silver:testing:bin \
      && ant
 

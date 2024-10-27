@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# This does a single-pass build of the Silver standard libraries, runtime and compiler.
+# This is normally sufficient if there are no changes to the translation.
+
+set -eu
+
+NOINSTALL=1 ./make-core-runtime "$@"
+NOINSTALL=1 ./make-stdlib "$@"
+./make-compiler "$@"

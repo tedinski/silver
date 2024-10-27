@@ -1,5 +1,7 @@
 grammar silver:compiler:definition:core;
 
+import silver:compiler:driver;
+
 inherited attribute nonterminalName :: String;
 
 concrete production nonterminalDcl
@@ -9,6 +11,10 @@ top::AGDcl ::= quals::NTDeclQualifiers 'nonterminal' id::Name tl::BracketedOptTy
 
   production fName :: String = top.grammarName ++ ":" ++ id.name;
   nm.nonterminalName = fName;
+
+  production isThisTracked::Boolean =
+    (top.config.forceOrigins || ((!top.config.noOrigins) && quals.tracked)) &&
+    !contains(fName, getSpecialCaseNoOrigins());
   
   -- tl.freeVariables is our order list of the bound types for this nonterminal.
   top.defs := [ntDef(top.grammarName,
@@ -17,7 +23,7 @@ top::AGDcl ::= quals::NTDeclQualifiers 'nonterminal' id::Name tl::BracketedOptTy
                     map((.kindrep), tl.types),
                     quals.data,
                     quals.closed,
-                    quals.tracked)];
+                    isThisTracked)];
   -- TODO: It's probably reasonable to skip listing
   -- tl.freeVariables, and the Type. Assuming we have a proper ntDcl.
   -- And we should consider recording the exact concrete names used... might be nice documentation to use
@@ -109,3 +115,16 @@ top::NonterminalModifierList ::= h::NonterminalModifier ',' t::NonterminalModifi
   top.unparse = h.unparse ++ ", " ++ t.unparse;
 }
 
+-- These types will not have origins (will not be TrackedNodes) even if built with --force-origins
+function getSpecialCaseNoOrigins
+[String] ::=
+{
+  production attribute names::[String] with ++;
+  names := [
+    -- These are forced to be untracked to prevent circularity
+    "silver:core:OriginInfo",
+    "silver:core:OriginInfoType",
+    "silver:core:OriginNote"
+  ];
+  return names;
+}

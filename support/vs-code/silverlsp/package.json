@@ -65,7 +65,7 @@
           },
           "silver.compilerJar": {
             "type": "string",
-            "description": "Path to the jar containing an alternate version of the Silver compiler. This can be a relative path from the first workspace folder."
+            "description": "Path to the jar containing an alternate version of the Silver compiler. This can be a relative path from the first workspace folder. Multiple jars can be specified by separating them with a colon (':')."
           },
           "silver.parserName": {
             "type": "string",

@@ -1,6 +1,6 @@
 grammar silver:compiler:driver;
 
-attribute genLocation, doClean, displayVersion, warnError, forceOrigins, noOrigins, noRedex, tracingOrigins, searchPath, outName, buildGrammars, silverHomeOption, noBindingChecking occurs on CmdArgs;
+attribute genLocation, doClean, displayVersion, warnError, forceOrigins, noOrigins, noRedex, tracingOrigins, noStdlib, searchPath, outName, buildGrammars, silverHomeOption, noBindingChecking occurs on CmdArgs;
 
 synthesized attribute searchPath :: [String];
 synthesized attribute outName :: [String];
@@ -14,6 +14,7 @@ synthesized attribute forceOrigins :: Boolean;
 synthesized attribute noOrigins :: Boolean;
 synthesized attribute noRedex :: Boolean;
 synthesized attribute tracingOrigins :: Boolean;
+synthesized attribute noStdlib :: Boolean;
 
 synthesized attribute buildGrammars :: [String];
 
@@ -35,6 +36,7 @@ top::CmdArgs ::= l::[String]
   top.noOrigins = false;
   top.noRedex = false;
   top.tracingOrigins = false;
+  top.noStdlib = false;
 }
 abstract production versionFlag
 top::CmdArgs ::= rest::CmdArgs
@@ -102,6 +104,12 @@ top::CmdArgs ::= s::String rest::CmdArgs
   top.silverHomeOption = s :: forward.silverHomeOption;
   forwards to @rest;
 }
+abstract production noStdlibFlag
+top::CmdArgs ::= rest::CmdArgs
+{
+  top.noStdlib = true;
+  forwards to @rest;
+}
 abstract production nobindingFlag
 top::CmdArgs ::= rest::CmdArgs
 {
@@ -157,6 +165,9 @@ Either<String  Decorated CmdArgs> ::= args::[String]
     , flagSpec(name="--tracing-origins", paramString=nothing(),
         help="attach source locations as origin notes to trace control flow",
         flagParser=flag(tracingOriginsFlag))
+    , flagSpec(name="--no-stdlib", paramString=nothing(),
+        help="do not automatically include the pre-compiled standard library",
+        flagParser=flag(noStdlibFlag))
     ];
   
   local usage :: String = 
@@ -206,7 +217,7 @@ fun determineBuildEnv IOErrorable<BuildEnv> ::= a::Decorated CmdArgs =
         fromArgsAndEnv(
           -- TODO: maybe we should use the java platform separator here?
           derivedSH, envSG, explode(":", envGP), explode(":", envSHG),
-          a.silverHomeOption, a.genLocation, a.searchPath);
+          a.silverHomeOption, a.genLocation, a.searchPath, a.noStdlib);
     });
 
     -- Let's do some checks on the environment
@@ -219,7 +230,11 @@ fun determineBuildEnv IOErrorable<BuildEnv> ::= a::Decorated CmdArgs =
 fun checkEnvironment IO<[String]> ::= benv::BuildEnv =
   do {
     isGenDir :: Boolean <- isDirectory(benv.silverGen);
-    isGramDir :: Boolean <- isDirectory(benv.defaultGrammarPath);
+    missingGrammarPath :: [String] <- filterM(\ f -> do {
+        isDir :: Boolean <- isDirectory(f);
+        isJar :: Boolean <- isJarFile(f);
+        return !(isDir || isJar);
+      }, benv.grammarPath);
 
     return
       if benv.silverHome == "/" -- because we called 'endWithSlash' on empty string
@@ -228,11 +243,9 @@ fun checkEnvironment IO<[String]> ::= benv::BuildEnv =
           then if benv.silverGen == benv.defaultSilverGen
           then ["Missing SILVER_GEN or -G <path>.\nThis should have been inferable, but " ++ benv.silverGen ++ " is not a directory.\n"]
           else ["Supplied SILVER_GEN location " ++ benv.silverGen ++ " is not a directory.\n"]
-      else if !isGramDir
-      then ["Missing standard library grammars: tried " ++ benv.defaultGrammarPath ++ " but this did not exist.\n"]
+      else if !null(missingGrammarPath)
+      then ["Failed to find include dirs or jars in grammar path: " ++ implode(", ", missingGrammarPath)]
       else [];
-      -- TODO: We should probably check everything in grammarPath?
-      -- TODO: Maybe look for 'core' specifically?
   };
 
 fun checkPreBuild

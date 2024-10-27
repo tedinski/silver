@@ -15,7 +15,7 @@ imports silver:util:treeset as set;
 type ProdName = String;
 type NtName = String;
 
--- from explicit specifications
+-- from explicit specifications and initial flow graphs
 function computeInitialFlowTypes
 EnvTree<FlowType> ::= specDefs::[(String, String, [String], [String])]
 {
@@ -38,80 +38,74 @@ fun ntListCoalesce [(NtName, [(String, [String])])] ::= l::[[(NtName, String, [S
 fun toFlatEdges [Pair<String String>] ::= x::Pair<String [String]> =
   map(pair(fst=x.fst, snd=_), x.snd);
 
+fun runFlowTypeInference
+(EnvTree<ProductionGraph>, EnvTree<FlowType>) ::=
+    graphs::[ProductionGraph] ntEnv::EnvTree<FlowType> =
+  runState(
+    fullySolveFlowTypes(map((.prod), graphs)),
+    (directBuildTree(map(prodGraphToEnv, graphs)), ntEnv)).1;
+
+type InferState = State<(EnvTree<ProductionGraph>, EnvTree<FlowType>) _>;
 
 {--
  - Produces flow types for every nonterminal.
  - Iterates until convergence.
  -}
-function fullySolveFlowTypes
-([ProductionGraph], EnvTree<FlowType>) ::= 
-  graphs::[ProductionGraph]
-  ntEnv::EnvTree<FlowType>
-{
-  -- Each iteration, we rebuild this... :/
-  -- TODO: consider a 'mapValuesWithMapState' function :: 'k1, v1, map<k1 v1>, map<k2 v2> -> v1, k2, v2'
-  local prodEnv :: EnvTree<ProductionGraph> =
-    directBuildTree(map(prodGraphToEnv, graphs));
-  
-  local iter :: (Boolean, [ProductionGraph], EnvTree<FlowType>) =
-    solveFlowTypes(graphs, prodEnv, ntEnv);
-  
+fun fullySolveFlowTypes InferState<()> ::= prods::[ProdName] = do {
+  -- Update the flow types from all the initial production graphs
+  traverse_(updateFlowType, prods);
+
   -- Just iterate until no new edges are added
-  return if !iter.1 then iter.snd
-  else fullySolveFlowTypes(iter.2, iter.3);
+  doWhile_(do {
+    map(any, traverseA(
+      \ prod::ProdName -> do {
+        -- Update the production graph
+        graphUpdated :: Boolean <- updateProdGraph(prod);
+
+        -- Only update the flow types for the prod's NT if the prod graph changed
+        when_(graphUpdated, updateFlowType(prod));
+        return graphUpdated;
+      },
+      prods));
+  });
+};
+
+{--
+ - Update a production graph using the current flow types.
+ -}
+production updateProdGraph
+top::InferState<Boolean> ::= prod::ProdName
+{
+  local graph :: ProductionGraph = findProductionGraph(prod, top.stateIn.1);
+  local updatedGraph :: Maybe<ProductionGraph> =
+    updateGraph(graph, top.stateIn.1, top.stateIn.2);
+  top.stateOut =
+    case updatedGraph of
+    | just(g) -> (rtm:update(prod, [g], top.stateIn.1), top.stateIn.2)
+    | nothing() -> top.stateIn
+    end;
+  top.stateVal = updatedGraph.isJust;
 }
 
 {--
- - One iteration of solving flow type equations. Goes through each production once.
+ - Update flow types for a nonterminal based on a single production graph.
  -}
-function solveFlowTypes
-(Boolean, [ProductionGraph], EnvTree<FlowType>) ::=
-  graphs::[ProductionGraph]
-  prodEnv::EnvTree<ProductionGraph>
-  ntEnv::EnvTree<FlowType>
+production updateFlowType
+top::InferState<()> ::= prod::ProdName
 {
-  local updatedGraph :: ProductionGraph = updateGraph(head(graphs), prodEnv, ntEnv);
-
-  local currentFlowType :: FlowType = findFlowType(updatedGraph.lhsNt, ntEnv);
-  
-  -- The New Improved Flow Type
-  local synExpansion :: [Pair<String [String]>] =
-    map(expandVertexFilterTo(_, updatedGraph), updatedGraph.flowTypeVertexes);
-  
-  -- Find what edges are NEW NEW NEW
-  local brandNewEdges :: [Pair<String String>] =
-    findBrandNewEdges(synExpansion, currentFlowType);
-    
-  local newFlowType :: FlowType =
-    g:add(brandNewEdges, currentFlowType);
-  -- TODO: we could just always "add everything unconditionally" but we also need to know if there were
-  -- any new additions... so we'd need something added to graph to support that.
-  
-  local recurse :: Pair<Boolean Pair<[ProductionGraph] EnvTree<FlowType>>> =
-    solveFlowTypes(tail(graphs), prodEnv, rtm:update(updatedGraph.lhsNt, [newFlowType], ntEnv));
-    
-  return if null(graphs) then (false, ([], ntEnv))
-  else (!null(brandNewEdges) || recurse.fst, updatedGraph :: recurse.snd.fst, recurse.snd.snd);
-}
-
-
-function findBrandNewEdges
-[Pair<String String>] ::= candidates::[Pair<String [String]>]  currentFlowType::FlowType
-{
-  local syn :: String = head(candidates).fst;
-  local inhs :: [String] = head(candidates).snd;
-  
-  -- TODO: we might take '[Pair<String Set<String>>]' insteadof [String] and gain speed?
-  local newinhs :: [String] = removeAll(set:toList(g:edgesFrom(syn, currentFlowType)), inhs);
-  
-  local newEdges :: [Pair<String String>] = map(pair(fst=syn, snd=_), newinhs);
-  
-  return if null(candidates) then [] else newEdges ++ findBrandNewEdges(tail(candidates), currentFlowType);
+  local graph :: ProductionGraph = findProductionGraph(prod, top.stateIn.1);
+  local currentFlowType :: FlowType = findFlowType(graph.lhsNt, top.stateIn.2);
+  local newFlowType :: FlowType = g:add(
+    flatMap(expandVertexFilterTo(_, graph), graph.flowTypeVertexes),
+    currentFlowType);
+  top.stateOut = (top.stateIn.1, rtm:update(graph.lhsNt, [newFlowType], top.stateIn.2));
+  top.stateVal = ();
 }
 
 -- Expand 'ver' using 'graph', then filter down to just those in 'inhs'
-fun expandVertexFilterTo Pair<String [String]> ::= ver::FlowVertex  graph::ProductionGraph =
-  (ver.flowTypeName, filterLhsInh(set:toList(graph.edgeMap(ver))));
+fun expandVertexFilterTo [(String, String)] ::= ver::FlowVertex  graph::ProductionGraph =
+  map(pair(fst=ver.flowTypeName, snd=_),
+    filterLhsInh(set:toList(graph.edgeMap(ver))));
 
 {--
  - Filters vertexes down to just the names of inherited attributes on the LHS

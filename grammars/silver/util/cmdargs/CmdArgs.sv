@@ -8,6 +8,8 @@ grammar silver:util:cmdargs;
   - - For a flag that takes no arguments on the command line, define a production of type (CmdArgs ::= CmdArgs)
   - - For a flag that takes a single argument, define a production of type (CmdArgs ::= String CmdArgs)
   - - For a flag that takes more arguments, define a prodution of type (CmdArgs ::= [String] CmdArgs)
+  -
+  - This shouldn't have inherited attributes, but can't be data because of how we abuse forwarding for defining flags.
   -}
 nonterminal CmdArgs with cmdRemaining, cmdError;
 
@@ -22,9 +24,6 @@ synthesized attribute cmdError :: Maybe<String>;
 
 @{-
   - A specification of a flag for @link[interpretCmdArgs].
-  -
-  - This uses the annotations-as-record pattern; when a proper record extension
-  - is merged, this should use that instead.
   -
   - The `name` is the string that should be present in the arguments list in
   - order for this flag to be recognized. In an example `-o` flag, it would be
@@ -50,17 +49,13 @@ synthesized attribute cmdError :: Maybe<String>;
   -   help="place the output into <file>", flagParser=option(outFlag))
   - ```
   -}
-nonterminal FlagSpec with name, paramString, help, flagParser;
+data FlagSpec = flagSpec
+  with name, paramString, help, flagParser;
 
 annotation name::String;
 annotation paramString::Maybe<String>;
 annotation help::String;
 annotation flagParser::Flag;
-
-@{- The constructor of FlagSpec values. -}
-production flagSpec
-this::FlagSpec ::=
-{}
 
 @{-
   - Produce a parsed list of arguments using the given flags from the given input

@@ -18,7 +18,7 @@ commit_hash="$(git rev-parse HEAD)"
 #
 # Host foundry.remexre.xyz
 #   User nathan
-rsync -Pa jars/ foundry.remexre.xyz:/export/scratch/melt-jenkins/${commit_hash}-jars/
+rsync -Pa jars/ foundry.remexre.xyz:/export/scratch/melt-jenkins/${commit_hash}-jars/ --exclude=silver-langserver-launcher.jar
 
 echo "Now go to https://foundry.remexre.xyz/jenkins/job/melt-umn/job/silver/job/$encoded_branch_name/build and"
 echo "pass /export/scratch/melt-jenkins/${commit_hash}-jars as OVERRIDE_JARS"

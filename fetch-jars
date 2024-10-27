@@ -87,9 +87,9 @@ fi
 
 if [[ $* == *--copper* ]]; then
   # Only fetch the Copper jars, if requested
-  FILES="CopperCompiler.jar"
+  FILES="CopperCompiler.jar CopperRuntime.jar"
 else
-  FILES="CopperCompiler.jar commonmark-0.17.1.jar silver.compiler.composed.Default.jar SilverRuntime.jar"
+  FILES="CopperCompiler.jar CopperRuntime.jar commonmark-0.17.1.jar silver.core.jar silver.util.jar silver.langutil.jar silver.rewrite.jar silver.regex.jar silver.compiler.composed.Default.jar"
 fi
 
 
@@ -122,5 +122,13 @@ else
   # Always overwrite all the files in jars.
   for file in $FILES; do
       cp "$JARS_BAK/$file" jars/
+  done
+fi
+
+if [ -d generated/src ]; then
+  echo "Deleting stale generated file cache..."
+  for file in generated/*/*; do
+    echo $file
+    rm -rf $file
   done
 fi

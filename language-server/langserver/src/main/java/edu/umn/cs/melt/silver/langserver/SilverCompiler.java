@@ -22,6 +22,7 @@ import edu.umn.cs.melt.lsp4jutil.Util;
 import silver.compiler.driver.PbuildRun;
 import silver.compiler.driver.PparseArgsOrError;
 import silver.compiler.driver.util.NBuildEnv;
+import silver.compiler.driver.util.NCompilation;
 import silver.compiler.driver.util.PbuildEnv;
 import silver.compiler.driver.util.PwriteInterface;
 import silver.compiler.langserver.PfindDeclLocation;
@@ -36,7 +37,7 @@ import silver.core.PunsafeEvalIO;
  * @author krame505
  */
 public class SilverCompiler {
-    private DecoratedNode comp = null;
+    private NCompilation comp = null;
     private String silverGen;
     private String stdLibGrammarsDir;
 
@@ -98,7 +99,7 @@ public class SilverCompiler {
         DecoratedNode a = PparseArgsOrError.invoke(OriginContext.FFI_CONTEXT, ConsCellCollection.fromStringList(args));
 
         // Build!
-        DecoratedNode comp = (DecoratedNode)PunsafeEvalIO.invoke(OriginContext.FFI_CONTEXT,
+        NCompilation comp = (NCompilation)PunsafeEvalIO.invoke(OriginContext.FFI_CONTEXT,
             PbuildRun.invoke(OriginContext.FFI_CONTEXT,
                 parserFn, a, benv,
                 ConsCellCollection.fromIterator(buildGrammars.stream().<StringCatter>map(StringCatter::new).iterator())));

@@ -591,7 +591,7 @@ public final class Reflection {
 			Object v = nDeserItem(lookup, i); // Deserialize the stored item
 
 			if (!TypeRep.unify(expected, getType(v))) { // Run a unification check to ensure silver type-safety
-				return new Pleft(new StringCatter("nativeDeserialize is constructing " + expected.toString() + ", but found " + getType(v).toString()));
+				return new Pleft(new StringCatter("Native deserialize is constructing " + expected.toString() + ", but found " + getType(v).toString()));
 			}
 
 			return new Pright(v);

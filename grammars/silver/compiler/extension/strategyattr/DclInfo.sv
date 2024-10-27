@@ -33,7 +33,12 @@ top::AttributeDclInfo ::=
   e::StrategyExpr
 {
   top.fullName = fn;
-  propagate compareKey, isEqual;
+  propagate compareKey;
+  top.isEqual =
+    case top.compareTo of
+    | strategyDcl(ofn, oIsTotal, _, _, _, _, _, _, _, oe) -> fn == ofn && isTotal == oIsTotal && ^e == ^oe
+    | _ -> false
+    end;
 
   production tyVar::TyVar = freshTyVar(starKind());
   top.typeScheme = polyType([tyVar],

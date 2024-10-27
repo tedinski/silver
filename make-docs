@@ -7,9 +7,7 @@ if [ $0 != "./make-docs" ]; then
   exit 1
 fi
 
-: ${DOCGRAMMAR="silver:compiler:extension:doc:extra"}
+export BUILDGRAMMAR=silver:compiler:extension:doc:extra
 
-rm -rf ./generated/doc
-
-./support/bin/silver --dont-translate --doc --clean --warn-error $DOCGRAMMAR
+./check-compile --clean --doc
 

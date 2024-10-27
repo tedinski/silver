@@ -6,7 +6,7 @@ attribute genFiles occurs on RootSpec;
 attribute genBinaryFiles occurs on RootSpec;
 
 aspect production interfaceRootSpec
-top::RootSpec ::= _ _
+top::RootSpec ::= _ _ _
 {
   top.genFiles := [];
   top.genBinaryFiles := [];
@@ -23,7 +23,7 @@ aspect production grammarRootSpec
 top::RootSpec ::= g::Grammar  _ _ _ _ _
 {
   top.genBinaryFiles := [
-    ("Silver.svi", top.serInterface)
+    ("Silver.svi", serInterface)
   ];
 
   top.genFiles := g.genFiles ++

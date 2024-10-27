@@ -67,7 +67,7 @@ function reverse
 Deque<a> ::= q::Deque<a>
 {
   return case q of deque(ln,l,rn,r) -> deque(rn,r,ln,l) end;
-} 
+}
 
 function check
 Deque<a> ::= lenf::Integer f::[a] lenr::Integer r::[a]

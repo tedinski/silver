@@ -4,7 +4,7 @@
     <parent>
         <artifactId>silver-langserver-parent</artifactId>
         <groupId>edu.umn.cs.melt</groupId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,7 +16,7 @@
         <dependency>
             <artifactId>silver-langserver</artifactId>
         	<groupId>edu.umn.cs.melt</groupId>
-            <version>0.1.0-SNAPSHOT</version>
+            <version>0.1.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

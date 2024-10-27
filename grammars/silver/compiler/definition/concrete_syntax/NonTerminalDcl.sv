@@ -11,7 +11,6 @@ top::AGDcl ::= quals::NTDeclQualifiers 'nonterminal' id::Name tl::BracketedOptTy
     moduleExportedDefs(top.compiledGrammars, top.grammarDependencies, [top.grammarName], []);
   local syntax::Syntax = foldr(consSyntax, nilSyntax(), med.syntaxAst);
   
-  production isThisTracked::Boolean = top.config.forceOrigins || ((!top.config.noOrigins) && quals.tracked);
   local exportedLayoutTerms::[String] = syntax.allIgnoreTerminals;
   local exportedProds::[String] = syntax.allProductionNames;
   

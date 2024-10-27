@@ -6,7 +6,6 @@ melt.setProperties(overrideJars: true)
 
 melt.trynode('silver') {
   def WS = pwd()
-  def SILVER_GEN = "${WS}/generated"
   def newenv = silver.getSilverEnv(WS)
 
   stage("Build") {
@@ -98,7 +97,7 @@ melt.trynode('silver') {
   }
 
   stage("Modular Analyses") {
-    sh "./self-compile --clean --mwda --dont-translate"
+    sh "./check-compile --clean --mwda"
   }
 
   // Avoid deadlock condition from all executor slots being filled with builds
@@ -117,7 +116,7 @@ melt.trynode('silver') {
     // Build test driver
     withEnv (newenv) {
       dir ("${WS}/test") {
-        sh "silver --clean silver:testing:bin"
+        sh "silver --clean -I ${WS}/grammars silver:testing:bin"
       }
     }
 
@@ -146,10 +145,10 @@ melt.trynode('silver') {
 
     def tasks = [:]
     tasks << github_projects.collectEntries { t ->
-      [(t): { melt.buildProject(t, [SILVER_BASE: WS, SILVER_GEN: SILVER_GEN]) }]
+      [(t): { melt.buildProject(t, [SILVER_BASE: WS]) }]
     }
     tasks << specific_jobs.collectEntries { t ->
-      [(t): { melt.buildJob(t, [SILVER_BASE: WS, SILVER_GEN: SILVER_GEN]) }]
+      [(t): { melt.buildJob(t, [SILVER_BASE: WS]) }]
     }
 
     // Do downstream integration testing

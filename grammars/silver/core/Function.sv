@@ -25,6 +25,22 @@ fun uncurry4 e ::= f::((((e ::= d) ::= c) ::= b) ::= a)  x::a  y::b  z::c  p::d 
 fun uncurry5 f ::= f::(((((f ::= e) ::= d) ::= c) ::= b) ::= a)  x::a  y::b  z::c  p::d  q::e =
   f(x)(y)(z)(p)(q);
 
+instance Functor (_ ::= ) {
+  map = \ fn::(b ::= a) x::(a ::= ) -> \ -> fn(x());
+}
+instance Apply (_ ::= ) {
+  ap = \ fn::((b ::= a) ::= ) x::(a ::= ) -> \ -> fn()(x());
+}
+instance Applicative (_ ::= ) {
+  pure = \ x::a -> \ -> x;
+}
+instance Semigroup a => Semigroup (a ::= ) {
+  append = lift2(append, _, _);
+}
+instance Monoid a => Monoid (a ::= ) {
+  mempty = pure(mempty);
+}
+
 instance Functor (_ ::= c) {
   map = \ fn::(b ::= a) x::(a ::= c) -> \ c::c -> fn(x(c));
 }
@@ -33,6 +49,12 @@ instance Apply (_ ::= c) {
 }
 instance Applicative (_ ::= c) {
   pure = \ x::a -> \ _::c -> x;
+}
+instance Semigroup a => Semigroup (a ::= c) {
+  append = lift2(append, _, _);
+}
+instance Monoid a => Monoid (a ::= c) {
+  mempty = pure(mempty);
 }
 
 instance Functor (_ ::= c d) {
@@ -44,6 +66,12 @@ instance Apply (_ ::= c d) {
 instance Applicative (_ ::= c d) {
   pure = \ x::a -> \ _::c _::d -> x;
 }
+instance Semigroup a => Semigroup (a ::= c d) {
+  append = lift2(append, _, _);
+}
+instance Monoid a => Monoid (a ::= c d) {
+  mempty = pure(mempty);
+}
 
 instance Functor (_ ::= c d e) {
   map = \ fn::(b ::= a) x::(a ::= c d e) -> \ c::c d::d e::e -> fn(x(c, d, e));
@@ -53,6 +81,12 @@ instance Apply (_ ::= c d e) {
 }
 instance Applicative (_ ::= c d e) {
   pure = \ x::a -> \ _::c _::d _::e -> x;
+}
+instance Semigroup a => Semigroup (a ::= c d e) {
+  append = lift2(append, _, _);
+}
+instance Monoid a => Monoid (a ::= c d e) {
+  mempty = pure(mempty);
 }
 
 instance Functor (_ ::= c d e f) {
@@ -64,6 +98,12 @@ instance Apply (_ ::= c d e f) {
 instance Applicative (_ ::= c d e f) {
   pure = \ x::a -> \ _::c _::d _::e _::f -> x;
 }
+instance Semigroup a => Semigroup (a ::= c d e f) {
+  append = lift2(append, _, _);
+}
+instance Monoid a => Monoid (a ::= c d e f) {
+  mempty = pure(mempty);
+}
 
 instance Functor (_ ::= c d e f g) {
   map = \ fn::(b ::= a) x::(a ::= c d e f g) -> \ c::c d::d e::e f::f g::g -> fn(x(c, d, e, f, g));
@@ -73,4 +113,10 @@ instance Apply (_ ::= c d e f g) {
 }
 instance Applicative (_ ::= c d e f g) {
   pure = \ x::a -> \ _::c _::d _::e _::f _::g -> x;
+}
+instance Semigroup a => Semigroup (a ::= c d e f g) {
+  append = lift2(append, _, _);
+}
+instance Monoid a => Monoid (a ::= c d e f g) {
+  mempty = pure(mempty);
 }

@@ -243,7 +243,7 @@ synthesized attribute allAttributeRefs::map:Map<String (String, Location)>;
 attribute valueFileRefLocs, typeFileRefLocs, attributeFileRefLocs, allValueRefs, allTypeRefs, allAttributeRefs occurs on Compilation;
 
 aspect production compilation
-top::Compilation ::= g::Grammars r::Grammars _ _
+top::Compilation ::= g::Grammars r::Grammars _ _ _
 {
   top.valueFileRefLocs = buildFileRefs((.valueRefLocs), (.valueList), g.grammarList);
   top.typeFileRefLocs = buildFileRefs((.typeRefLocs), (.typeList), g.grammarList);
@@ -351,7 +351,7 @@ annotation sourceLocation occurs on a =>
     lookupPos(line, col, map:lookup(fileName, decls)));
 
 fun findDeclLocation
-[Location] ::= fileName::String line::Integer col::Integer c::Decorated Compilation =
+[Location] ::= fileName::String line::Integer col::Integer c::Compilation =
   lookupDeclLocation(fileName, line, col, c.valueFileRefLocs) ++
   lookupDeclLocation(fileName, line, col, c.typeFileRefLocs) ++
   lookupDeclLocation(fileName, line, col, c.attributeFileRefLocs);
@@ -371,7 +371,7 @@ attribute fullName {} occurs on a =>
     lookupPos(line, col, map:lookup(fileName, decls)));
 
 fun findReferences
-[Location] ::= fileName::String line::Integer col::Integer c::Decorated Compilation =
+[Location] ::= fileName::String line::Integer col::Integer c::Compilation =
   lookupReferenceLocations(fileName, line, col, c.valueFileRefLocs, c.allValueRefs) ++
   lookupReferenceLocations(fileName, line, col, c.typeFileRefLocs, c.allTypeRefs) ++
   lookupReferenceLocations(fileName, line, col, c.attributeFileRefLocs, c.allAttributeRefs);

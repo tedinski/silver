@@ -20,10 +20,10 @@ grammar silver:compiler:driver;
  -}
 
 aspect production compilation
-top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  benv::BuildEnv
+top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  a::Decorated CmdArgs  benv::BuildEnv
 {
   top.postOps <- [printAllParsingErrors(top.allGrammars)];
-  top.postOps <- if top.config.noBindingChecking then [] else
+  top.postOps <- if a.noBindingChecking then [] else
     [printAllBindingErrors(top.allGrammars)]; 
   top.postOps <- [touchIfaces(r.grammarList, benv.silverGen)];
 }

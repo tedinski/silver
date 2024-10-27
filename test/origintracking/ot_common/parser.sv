@@ -17,5 +17,5 @@ top::CST ::=
 }
 
 parser cstParse::CST {
-	common;
+	ot_common;
 }

@@ -48,6 +48,11 @@ function keys
 }
 
 @{--
+ - Returns a list of values that are present in the map, in key sorted order.
+ -}
+fun values [b] ::= mp::Map<a b> = map(snd, toList(mp));
+
+@{--
  - Looks up an element from the map, empty list if not contained.
  -}
 function lookup

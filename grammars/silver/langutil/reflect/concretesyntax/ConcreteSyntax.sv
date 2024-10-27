@@ -1,7 +1,10 @@
-grammar silver:reflect:concretesyntax;
+grammar silver:langutil:reflect:concretesyntax;
 
-imports silver:langutil;
+-- This grammar logically belongs under of silver:reflect, but it needs to live
+-- here due to its dependency on the langutil artifact.
+
 imports silver:reflect;
+imports silver:langutil;
 
 terminal Comma_t       ',';
 terminal Equal_t       '=';
