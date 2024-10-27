@@ -32,9 +32,7 @@ melt.trynode('silver') {
         sh "cp ${source}/* jars/"
       }
     } else {
-      // We start by obtaining normal jars, but we potentially overwrite them:
-      // (This is the least annoying way to go about this...)
-      sh "./fetch-jars"
+      Boolean foundJars = false
       if (env.BRANCH_NAME == 'develop') {
         // For 'develop', detect pull request merges, and grab jars from the merged branch
         String branch = getMergedBranch()
@@ -45,6 +43,7 @@ melt.trynode('silver') {
             try {
               copyArtifacts(projectName: branchJob, selector: lastSuccessful())
               melt.annotate("Jars from merged branch.")
+              foundJars = true
             } catch (hudson.AbortException exc1) {
               // That's okay. We prefer this approach to using 'optional: true' because it
               // lets us know whether it happened or not. The annotation only gets set when it does.
@@ -57,15 +56,21 @@ melt.trynode('silver') {
           // If the last build has artifacts, use those.
           copyArtifacts(projectName: env.JOB_NAME, selector: lastCompleted())
           melt.annotate("Jars from branch (prev).")
+          foundJars = true
         } catch (hudson.AbortException exc2) {
           try {
             // If there is a last successful build, use those.
             copyArtifacts(projectName: env.JOB_NAME, selector: lastSuccessful())
             melt.annotate("Jars from branch (successful).")
+            foundJars = true
           } catch (hudson.AbortException exc3) {
             // That's okay. We tried. We'll stick with fetch-jars
           }
         }
+      }
+      if (!foundJars) {
+        // Fall back to using fetch-jars
+        sh "./fetch-jars"
       }
     }
     // If requested, go download the latest Copper jars and use them instead of the archived/provided ones
