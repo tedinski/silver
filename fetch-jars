@@ -21,13 +21,22 @@ done
 
 COMMIT_ARTIFACTS="https://foundry.remexre.xyz/commit-artifacts/"
 
+if [[ $* == *--copper* ]]; then
+  # Only fetch the Copper jars, if requested
+  FILES="CopperCompiler.jar CopperRuntime.jar"
+else
+  FILES="CopperCompiler.jar CopperRuntime.jar commonmark-0.17.1.jar silver.core.jar silver.util.jar silver.langutil.jar silver.rewrite.jar silver.regex.jar silver.compiler.composed.Default.jar"
+fi
+
 args=$*
 function has_jars {
-  if [[ $args == *--local* ]]; then
-    [[ -d "JARS-BAK/$1" ]]
-  else
-    wget --spider -q "$COMMIT_ARTIFACTS/$1"
-  fi
+  for file in $FILES; do
+    if [[ $args == *--local* ]]; then
+      [[ -f "JARS-BAK/$1/$file" ]] || return 1
+    else
+      wget --spider -q "$COMMIT_ARTIFACTS/$1/$file" || return 1
+    fi
+  done
 }
 
 rev=""
@@ -68,7 +77,7 @@ if [[ $* == *--local* ]]; then
   LOCAL_STORE="JARS-BAK/$rev"
   REMOTE_STORE=
   JARS_BAK=
-elif [[ $* != *--unstable* && $* != *--local* && (-z $rev || $rev == "$DEVELOP") ]]; then
+elif [[ $* != *--unstable* && (-z $rev || $rev == "$DEVELOP") ]]; then
   echo "Fetching latest stable jars..."
   LOCAL_STORE=/web/research/melt.cs.umn.edu/downloads/silver-dev/jars
   REMOTE_STORE="https://melt.cs.umn.edu/downloads/silver-dev/jars"
@@ -76,7 +85,7 @@ elif [[ $* != *--unstable* && $* != *--local* && (-z $rev || $rev == "$DEVELOP")
 else
   git --no-pager show --quiet "$rev"
   if ! has_jars "$rev"; then
-    echo "Cound not find jars for commit"
+    echo "Could not find jars for commit"
     exit 1
   fi
   echo "Warning: Fetching unstable jars!"
@@ -84,14 +93,6 @@ else
   REMOTE_STORE="$COMMIT_ARTIFACTS/$rev"
   JARS_BAK="JARS-BAK/$rev"
 fi
-
-if [[ $* == *--copper* ]]; then
-  # Only fetch the Copper jars, if requested
-  FILES="CopperCompiler.jar CopperRuntime.jar"
-else
-  FILES="CopperCompiler.jar CopperRuntime.jar commonmark-0.17.1.jar silver.core.jar silver.util.jar silver.langutil.jar silver.rewrite.jar silver.regex.jar silver.compiler.composed.Default.jar"
-fi
-
 
 mkdir -p jars
 
