@@ -9,7 +9,7 @@ set -euo pipefail
 BUILDGRAMMAR=${BUILDGRAMMAR:-"silver:compiler:composed:Default"}
 
 export SILVER_HOME=$PWD
-JVM_ARGS=(-Xss20M -Xmx6G -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --dont-translate "$@")
+JVM_ARGS=(-Xss30M -Xmx6G -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --dont-translate "$@")
 export GRAMMAR_PATH="../grammars"
 
 mkdir -p build
