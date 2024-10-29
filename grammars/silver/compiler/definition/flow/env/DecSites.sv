@@ -89,7 +89,7 @@ DecSiteTree ::= prodName::String vt::VertexType flowEnv::FlowEnv realEnv::Env
                 lookupRefDecSite(prodName, transAttrVertexType(vt, attrName), flowEnv))
             | _ -> []
             end,
-          getHostSynsFor(ntName, flowEnv))));
+          getSynAttrsOn(ntName, realEnv))));
 }
 
 {--
@@ -186,7 +186,7 @@ State<([(String, VertexType)], [(String, String)]) DecSiteTree> ::=
               lookupRefPossibleDecSites(prodName, transAttrVertexType(vt, attrName), flowEnv))
           | _ -> pure([])
           end,
-          getHostSynsFor(ntName, flowEnv));
+          getSynAttrsOn(ntName, realEnv));
       return
         -- Direct inherited equation at a decoration site
         (if vt.isInhDefVertex
