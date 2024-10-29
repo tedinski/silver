@@ -197,24 +197,24 @@ top::FlowSpecInh ::= inh::QNameAttrOccur
 }
 
 concrete production flowSpecTrans
-top::FlowSpecInh ::= transSyn::QNameAttrOccur '.' inh::QNameAttrOccur
+top::FlowSpecInh ::= transSyn::QNameAttrOccur '.' inh::FlowSpecInh
 {
   top.unparse = s"${transSyn.unparse}.${inh.unparse}";
   top.inhList :=
-    if transSyn.attrFound && inh.attrFound
-    then [s"${transSyn.attrDcl.fullName}.${inh.attrDcl.fullName}"]
+    if transSyn.attrFound
+    then map(\ i -> s"${transSyn.attrDcl.fullName}.${i}", inh.inhList)
     else [];
-  top.refList := [];
+  top.refList := [];  -- TODO: Technically, we could have cycles involving translation attr flow specs
 
   transSyn.attrFor = top.onNt;
-  inh.attrFor = transSyn.typerep;
+  inh.onNt = transSyn.typerep;
 
   top.errors <-
     if !transSyn.found || transSyn.attrDcl.isSynthesized && transSyn.attrDcl.isTranslation then []
     else [errFromOrigin(transSyn, transSyn.name ++ " is not a translation attribute and so cannot be within a flow type")];
   top.errors <-
-    if !inh.found || inh.attrDcl.isInherited then []
-    else [errFromOrigin(inh, inh.name ++ " is not an inherited attribute and so cannot be within a flow type")];
+    if !any(map(\ i -> indexOf(".", i) != -1, inh.inhList)) then []
+    else [errFromOrigin(inh, "Chained translation attributes are not currently supported in flow types")];
 }
 
 {--
