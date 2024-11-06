@@ -157,7 +157,13 @@ fun prettyDecSites String ::= nest::Integer d::DecSiteTree =
   then "all of\n" ++ implode("\n", map(prettyDecSites(nest + 1, _), d.decSiteReqs))
   else
     case d of
-    | depAttrDec(attrName, d) -> s"dependency ${attrName} supplied to ${prettyDecSites(nest, ^d)}"
+    | depAttrDec(attrName, d) ->
+        s"dependency ${attrName} supplied to" ++
+        if length(d.decSiteAlts) > 1
+        then " any of\n" ++ implode("\n", map(prettyDecSites(nest + 1, _), d.decSiteAlts))
+        else if length(d.decSiteReqs) > 1
+        then " all of\n" ++ implode("\n", map(prettyDecSites(nest + 1, _), d.decSiteReqs))
+        else " " ++ prettyDecSites(nest, ^d)
     | _ -> d.decSitePP
     end;
 
