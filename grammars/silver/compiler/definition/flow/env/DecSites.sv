@@ -73,8 +73,9 @@ DecSiteTree ::= prodName::String vt::VertexType flowEnv::FlowEnv realEnv::Env
           else
             case getTypeDcl(prodOrSig, realEnv) of
             | sigDcl :: _ -> 
-              viaDispatchDec(prodOrSig, sigName, product(map(
-                \ prod::(String, [String]) ->
+              viaProdVertexDec(
+                prodOrSig, rhsVertexType(sigName),
+                product(map(\ prod::(String, [String]) ->
                   case getTypeDcl(prodOrSig, realEnv) of
                   | sigDcl :: _
                       when drop(positionOf(sigName, sigDcl.dispatchSignature.inputNames), prod.2)
@@ -254,15 +255,6 @@ top::DecSiteTree ::= prodName::String vt::VertexType d::DecSiteTree
   d.seenProdVertexAttrs = set:add([(prodName, vt, top.attrToResolve)], top.seenProdVertexAttrs);
 }
 
--- The set of (dispatch, child, inh) that have been seen so far in this branch of the tree
-inherited attribute seenDispatchSigAttrs::set:Set<(String, String, String)> occurs on DecSiteTree;
-propagate seenDispatchSigAttrs on DecSiteTree excluding viaDispatchDec;
-aspect production viaDispatchDec
-top::DecSiteTree ::= dispatchSig::String sigName::String d::DecSiteTree
-{
-  d.seenDispatchSigAttrs = set:add([(dispatchSig, sigName, top.attrToResolve)], top.seenDispatchSigAttrs);
-}
-
 partial strategy attribute elimCycleDecSiteStep =
   rule on DecSiteTree of
   | viaProdVertexDec(prodName, vt, _)
@@ -271,14 +263,6 @@ partial strategy attribute elimCycleDecSiteStep =
       neverDec()
   | viaProdVertexDec(_, _, alwaysDec()) -> alwaysDec()
   | viaProdVertexDec(_, _, neverDec()) -> neverDec()
-  | viaDispatchDec(dispatchSig, sigName, _)
-      when set:contains((dispatchSig, sigName, top.attrToResolve), top.seenDispatchSigAttrs) ->
-      -- This is a dispatch that we are already trying to resolve.
-      -- Could potentially be a cycle, but more likely is just an implementation
-      -- production that dispatches again, which we want to permit.
-      neverDec()
-  | viaDispatchDec(_, _, alwaysDec()) -> alwaysDec()
-  | viaDispatchDec(_, _, neverDec()) -> neverDec()
   end occurs on DecSiteTree;
 
 attribute flowEnv, productionFlowGraphs occurs on DecSiteTree;
@@ -347,7 +331,6 @@ DecSiteTree ::= attrName::String d::DecSiteTree prodGraphs::EnvTree<ProductionGr
   d.productionFlowGraphs = prodGraphs;
   d.flowEnv = flowEnv;
   d.seenProdVertexAttrs = set:empty();
-  d.seenDispatchSigAttrs = set:empty();
   d.maxDepth = 10;
   return d.resolveDecSite;
 }

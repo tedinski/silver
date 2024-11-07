@@ -80,16 +80,6 @@ top::DecSiteTree ::= prodName::String vt::VertexType d::DecSiteTree
   d.maxDepth = top.maxDepth - 1;
 }
 
-production viaDispatchDec
-top::DecSiteTree ::= dispatchSig::String sigName::String d::DecSiteTree
-{
-  top.decSitePP = d.decSitePP;
-  top.decSiteReqs = d.decSiteReqs;
-  top.decSiteAlts = d.decSiteAlts;
-  top.dbgPP = if top.maxDepth > 0 then s"via child ${sigName} of dispatch ${dispatchSig}: ${d.dbgPP}" else "...";
-  d.maxDepth = top.maxDepth - 1;
-}
-
 {--
  - An attribute can be supplied to a vertex type in some production.
  -}
