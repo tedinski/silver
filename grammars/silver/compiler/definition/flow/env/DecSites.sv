@@ -31,6 +31,11 @@ DecSiteTree ::= prodName::String vt::VertexType flowEnv::FlowEnv realEnv::Env
     | rhsVertexType(sigName) -> lookupSignatureInputElem(sigName, ns).typerep.typeName
     | _ -> ""
     end;
+  local implementedSigName::Maybe<String> =
+    case prodDcl of
+    | d :: _ -> map((.fullName), d.implementedSignature)
+    | _ -> nothing()
+    end;
 
   local recurse::(DecSiteTree ::= String VertexType) =
     findDecSites(_, _, flowEnv, realEnv);
@@ -58,16 +63,28 @@ DecSiteTree ::= prodName::String vt::VertexType flowEnv::FlowEnv realEnv::Env
           -- Projected from a production
           then recurse(prodOrSig, rhsVertexType(sigName))
           -- Projected from a dispatch signature
-          else viaDispatchDec(prodOrSig, sigName, product(map(
-            \ prod::(String, [String]) ->
-              case getTypeDcl(prodOrSig, realEnv) of
-              | sigDcl :: _
-                  when drop(positionOf(sigName, sigDcl.dispatchSignature.inputNames), prod.2)
-                  matches sn :: _ -> recurse(prod.1, rhsVertexType(sn))
-              | _ -> error(s"findDecSites: Couldn't resolve ${sigName} in ${prodOrSig}")
-              end,
-            -- Look at all the (host) productions that implement this dispatch signature
-            getImplementingProds(prodOrSig, flowEnv))))) *
+          else if implementedSigName == just(prodOrSig)
+          -- A projection of the same dispatch signature that the current production implements.
+          -- Could potentially be a cycle, but more likely is just an implementation
+          -- production that dispatches again, which we want to permit.
+          -- TODO: This should check that the dispatch is actually applied to the same child;
+          -- should this check be done here or in resolving the decision tree?
+          then alwaysDec()
+          else
+            case getTypeDcl(prodOrSig, realEnv) of
+            | sigDcl :: _ -> 
+              viaDispatchDec(prodOrSig, sigName, product(map(
+                \ prod::(String, [String]) ->
+                  case getTypeDcl(prodOrSig, realEnv) of
+                  | sigDcl :: _
+                      when drop(positionOf(sigName, sigDcl.dispatchSignature.inputNames), prod.2)
+                      matches sn :: _ -> recurse(prod.1, rhsVertexType(sn))
+                  | _ -> error(s"findDecSites: Couldn't resolve ${sigName} in ${prodOrSig}")
+                  end,
+                -- Look at all the (host) productions that implement this dispatch signature
+                getImplementingProds(prodOrSig, flowEnv))))
+            | _ -> error(s"findDecSites: Couldn't find dispatch ${sigName}")
+            end) *
           projectedDepsDec(prodOrSig, sigName, recurse(prodName, parent))
       -- Via signature/dispatch sharing
       | rhsVertexType(sigName) when lookupSignatureInputElem(sigName, ns).elementShared ->
@@ -251,9 +268,7 @@ partial strategy attribute elimCycleDecSiteStep =
   | viaProdVertexDec(prodName, vt, _)
       when set:contains((prodName, vt, top.attrToResolve), top.seenProdVertexAttrs) ->
       -- This is a cycle due to a missing equation somewhere.
-      if set:isEmpty(top.seenDispatchSigAttrs)
-      then neverDec()  -- Not via a dispatch, so this must be a real cycle
-      else alwaysDec() -- Via a dispatch, see below
+      neverDec()
   | viaProdVertexDec(_, _, alwaysDec()) -> alwaysDec()
   | viaProdVertexDec(_, _, neverDec()) -> neverDec()
   | viaDispatchDec(dispatchSig, sigName, _)
@@ -261,7 +276,7 @@ partial strategy attribute elimCycleDecSiteStep =
       -- This is a dispatch that we are already trying to resolve.
       -- Could potentially be a cycle, but more likely is just an implementation
       -- production that dispatches again, which we want to permit.
-      alwaysDec()
+      neverDec()
   | viaDispatchDec(_, _, alwaysDec()) -> alwaysDec()
   | viaDispatchDec(_, _, neverDec()) -> neverDec()
   end occurs on DecSiteTree;
