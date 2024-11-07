@@ -229,10 +229,6 @@ partial strategy attribute reduceDecSiteStep =
   | bothDec(_, neverDec()) -> neverDec()
   | altDec(altDec(d1, d2), d3) -> altDec(^d1, altDec(^d2, ^d3))
   | bothDec(bothDec(d1, d2), d3) -> bothDec(^d1, bothDec(^d2, ^d3))
-  -- Valid optimizations, but actually makes things slower (due to forcing the
-  -- entire tree to be built):
-  -- | altDec(d1, d2) when contains(^d1, d2.decSiteAlts) -> ^d2
-  -- | bothDec(d1, d2) when contains(^d1, d2.decSiteReqs) -> ^d2
   | depAttrDec(_, alwaysDec()) -> alwaysDec()
   | depAttrDec(_, neverDec()) -> neverDec()
   end occurs on DecSiteTree;
@@ -309,10 +305,26 @@ partial strategy attribute resolveDecSiteStep =
   some(resolveDecSiteStep)
   occurs on DecSiteTree;
 
-strategy attribute resolveDecSite = repeat(resolveDecSiteStep)
+-- Remove redundant subtrees in the resolved decision tree.
+partial strategy attribute elimRedundantDecSiteStep =
+  rule on DecSiteTree of
+  | viaProdVertexDec(_, _, d) -> ^d
+  | altDec(d1, d2) when contains(^d1, d2.decSiteAlts) -> ^d2
+  | bothDec(d1, d2) when contains(^d1, d2.decSiteReqs) -> ^d2
+  end occurs on DecSiteTree;
+
+partial strategy attribute cleanupDecSiteStep =
+  someTopDown(reduceDecSiteStep <+ elimRedundantDecSiteStep)
   occurs on DecSiteTree;
 
-propagate flowEnv, productionFlowGraphs, reduceDecSiteStep, elimCycleDecSiteStep, lookupDecSiteStep, resolveDecSiteStep, resolveDecSite on DecSiteTree;
+strategy attribute resolveDecSite = repeat(resolveDecSiteStep) <* repeat(cleanupDecSiteStep)
+  occurs on DecSiteTree;
+
+propagate
+  flowEnv, productionFlowGraphs,
+  reduceDecSiteStep, elimRedundantDecSiteStep, elimCycleDecSiteStep,
+  lookupDecSiteStep, resolveDecSiteStep, cleanupDecSiteStep, resolveDecSite
+  on DecSiteTree;
 
 {--
   - Determine if some decoration site has some inherited attribute supplied.
