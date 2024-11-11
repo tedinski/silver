@@ -348,8 +348,10 @@ ${contexts.contextInitTrans}
         public final ${fnnt} invoke(final common.OriginContext originCtx, final Object[] children, final Object[] annotations) {
             return new ${className}(
               ${implode(", ", (if wantsTracking then [newConstructionOriginUsingCtxRef] else []) ++
-              map(\ c::Context -> decorate c with {boundVariables = namedSig.freeVariables;}.contextRefElem, namedSig.contexts) ++
-              unpackChildren(0, namedSig.inputElements) ++ unpackAnnotations(0, namedSig.namedInputElements))});
+                -- If this prod implements a dispatch signature, then it *can* have shared children when invoked.
+                (if d.implementsSig.isJust then "true" else "false") ::
+                map(\ c::Context -> decorate c with {boundVariables = namedSig.freeVariables;}.contextRefElem, namedSig.contexts) ++
+                unpackChildren(0, namedSig.inputElements) ++ unpackAnnotations(0, namedSig.namedInputElements))});
         }
 		
         @Override
