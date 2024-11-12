@@ -99,7 +99,14 @@ abstract production nested
 top::Message ::= l::Location m::String others::[Message]
 {
   top.where = l;
-  top.message = s"${m}\n${messagesToString(others)}";
+  local chain::[OriginInfo] = getOriginInfoChain(top);
+  top.message =
+    if null(chain) || originatesInExt(tail(chain)).isJust
+    -- If the message originates in extension-generated code,
+    -- then the nested messages likely do as well.
+    -- Suppress the origins errors from nested messages to avoid making diagnostics unreadable.
+    then s"${m}\n${messagesToStringNoOriginsCheck(others)}"
+    else s"${m}\n${messagesToString(others)}";
   top.noLocOutput = s"${top.message}\n";
   top.severity = foldr(max, 0, map((.severity), others));
 }
