@@ -669,4 +669,5 @@ top::PrimPattern ::= qn::QName '(' ns::VarBinders ')' _ e::Expr
   propagate flowDeps, flowDefs, flowEnv, decSiteVertexInfo, alwaysDecorated, scrutineeVertexType;
   top.flowDefs <-
     [patternRuleEq(top.frame.fullName, qn.lookupValue.fullName, top.scrutineeVertexType, ns.flowProjections)];
+  e.appDecSiteVertexInfo = nothing();
 }
