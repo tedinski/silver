@@ -226,6 +226,9 @@ public class DecoratedNode implements Decorable, Typed {
 				}
 				copyInhOverrides(parent, inheritedAttributes, inhs);
 			}
+			// It's okay if we override the old decorationSite here if it wasn't null,
+			// that just means something else is directly demanding what would have been
+			// forced by the current decorationSite, first.
 			decorationSite = decSite != null? decSite.withContext(parent) : null;
 		}
 		return this;
@@ -710,7 +713,7 @@ public class DecoratedNode implements Decorable, Typed {
 		if(this != decSiteTree) {
 			throw new SilverInternalError("Decoration site for " + getDebugID() + " returned a different tree: " + decSiteTree.toString());
 		}
-		return inherited(attribute);
+		return evalInhSomehow(attribute);
 	}
 	private final Object evalInhViaFwdP(final int attribute) {
 		try {
