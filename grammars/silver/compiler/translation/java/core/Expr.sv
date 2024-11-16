@@ -379,9 +379,6 @@ top::Expr ::= @e::Expr @q::QNameAttrOccur
 {
   -- TODO: Origin tracking?
     top.translation =
-    if !top.finalType.isDecorated then
-      s"((${top.finalType.transType})${e.translation}.translation(${q.attrOccursIndex}, ${q.attrOccursIndex}_inhs, ${q.attrOccursIndex}_dec_site).undecorate())"
-    else
       -- This may create the tree, or demand it via the remote decoration site if it has one.
       s"${e.translation}.translation(${q.attrOccursIndex}, ${q.attrOccursIndex}_inhs, ${q.attrOccursIndex}_dec_site)";
 
