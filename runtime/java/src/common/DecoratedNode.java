@@ -709,7 +709,12 @@ public class DecoratedNode implements Decorable, Typed {
 	private final Object evalInhViaDecSite(final int attribute) {
 		Lazy decSite = this.decorationSite;
 		this.decorationSite = null;
-		Object decSiteTree = decSite.eval(parent);
+		Object decSiteTree;
+		try {
+			decSiteTree = decSite.eval(parent);
+		} catch (Throwable t) {
+			throw new TraceException("While evaling inh '" + self.getNameOfInhAttr(attribute) + "' via decoration site of " + getDebugID() + " in " + parent.getDebugID(), t);
+		}
 		if(this != decSiteTree) {
 			throw new SilverInternalError("Decoration site for " + getDebugID() + " returned a different tree: " + decSiteTree.toString());
 		}
