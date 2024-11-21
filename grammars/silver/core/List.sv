@@ -236,7 +236,7 @@ fun containsBy Boolean ::= eq::(Boolean ::= a a)  elem::a  lst::[a] =
 fun contains Eq a => Boolean ::= elem::a  lst::[a] = containsBy(eq, elem, lst);
 
 @{--
- - Removes all duplicates from a list.
+ - Removes all duplicates from a list. O(n^2).
  -
  - @param eq  The equality function to use
  - @param xs  The list to remove duplicates from
@@ -247,12 +247,45 @@ fun nubBy [a] ::= eq::(Boolean ::= a a)  xs::[a] =
   else head(xs) :: nubBy(eq, removeBy(eq, head(xs), tail(xs)));
 
 @{--
- - Removes all duplicates from a list.
+ - Removes all duplicates from a list. O(n^2).
  -
  - @param xs  The list to remove duplicates from
  - @return  A list containing no duplicates, according to ==.
  -}
 fun nub Eq a => [a] ::= xs::[a] = nubBy(eq, xs);
+
+@{--
+ - Removes all consecutive duplicates from a list. O(n).
+ -
+ - This can be used with `sortBy` to perform the same task as `nubBy`, but more
+   efficiently.
+ -
+ - @param eq  The equality function to use
+ - @param xs  The list to remove duplicates from
+ - @return  A list containing no duplicates, according to the equality function.
+ -}
+fun uniqBy [a] ::= eq::(Boolean ::= a a)  xs::[a] =
+  case xs of
+  | [] -> []
+  | hd :: tl ->
+      if null(tl) then
+        xs
+      else if eq(hd, head(tl)) then
+        uniqBy(eq, tl)
+      else
+        hd :: uniqBy(eq, tl)
+  end;
+
+@{--
+ - Removes all consecutive duplicates from a list. O(n).
+ -
+ - This can be used with `sort` to perform the same task as `nub`, but more
+   efficiently.
+ -
+ - @param xs  The list to remove consecutive duplicates from
+ - @return  A list containing no consecutive duplicates, according to ==.
+ -}
+fun uniq Eq a => [a] ::= xs::[a] = uniqBy(eq, xs);
 
 @{--
  - Removes all instances of an element from a list.
