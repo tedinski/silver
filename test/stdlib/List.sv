@@ -64,6 +64,16 @@ equalityTest ( nub ([1,2,3,4]), [1,2,3,4],
 equalityTest ( nub ([ ]), [ ], 
                [Integer], core_tests ) ;
 
+-- uniq tests
+equalityTest ( uniq ([1,2,3,3,2,1,1,2]), [1,2,3,2,1,2], 
+               [Integer], core_tests ) ;
+
+equalityTest ( uniq ([1,2,3,4]), [1,2,3,4], 
+               [Integer], core_tests ) ;
+
+equalityTest ( uniq ([ ]), [ ], 
+               [Integer], core_tests ) ;
+
 -- remove tests
 equalityTest ( remove (2, [1,2,3,4,3,2,1]), [1,3,4,3,1],
                [Integer], core_tests ) ;
