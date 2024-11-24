@@ -565,6 +565,8 @@ public class DecoratedNode implements Decorable, Typed {
 	 * @return The decorated value of the translation attribute.
 	 */
 	private final DecoratedNode evalTrans(final int attribute, final int inhsAttribute, final int decSiteAttribute) {
+		// Evaluate the synthesized attribute to get the tree to decorate, somehow.
+		// This is usually undecorated, but can be decorated already if we are getting it from the forward.
 		Lazy l = self.getSynthesized(attribute);
 		Decorable d;
 		if(l != null) {
@@ -591,6 +593,24 @@ public class DecoratedNode implements Decorable, Typed {
 				throw new MissingDefinitionException("Translation attribute '" + self.getNameOfSynAttr(attribute) + "' not defined in " + getDebugID());
 			}
 		}
+		// Since the decoration site and direct inh equations for the translation attribute tree
+		// are passed down to this tree as inherited attributes, we need to ensure that
+		// any decoration sites for *this* tree are forced before looking at the inherited
+		// attributes here.
+		while(this.decorationSite != null) {
+			Lazy decSite = this.decorationSite;
+			this.decorationSite = null;
+			Object decSiteTree;
+			try {
+				decSiteTree = decSite.eval(parent);
+			} catch (Throwable t) {
+				throw new TraceException("While evaling decoration of trans '" + self.getNameOfSynAttr(attribute) + "' via decoration site of " + getDebugID() + " in " + parent.getDebugID(), t);
+			}
+			if(this != decSiteTree) {
+				throw new SilverInternalError("Decoration site for " + getDebugID() + " returned a different tree: " + decSiteTree.toString());
+			}
+		}
+		// Get the direct inherited attributes and decoration site for the translation attribute tree.
 		Lazy[] inhs = null;
 		if (inheritedAttributes != null && inheritedAttributes[inhsAttribute] != null) {
 			if (inheritedAttributes[inhsAttribute] instanceof TransInhs) {
@@ -603,6 +623,7 @@ public class DecoratedNode implements Decorable, Typed {
 		if(decSite == null && forwardParent != null && isProdForward && forwardParent.synthesizedValues[attribute] == null) {
 			decSite = (context) -> forwardParent.translation(attribute, inhsAttribute, decSiteAttribute);
 		}
+		// Decorate the tree that we computed earlier.
 		return d.decorate(parent, inhs, decSite);
 	}
 
@@ -709,7 +730,12 @@ public class DecoratedNode implements Decorable, Typed {
 	private final Object evalInhViaDecSite(final int attribute) {
 		Lazy decSite = this.decorationSite;
 		this.decorationSite = null;
-		Object decSiteTree = decSite.eval(parent);
+		Object decSiteTree;
+		try {
+			decSiteTree = decSite.eval(parent);
+		} catch (Throwable t) {
+			throw new TraceException("While evaling inh '" + self.getNameOfInhAttr(attribute) + "' via decoration site of " + getDebugID() + " in " + parent.getDebugID(), t);
+		}
 		if(this != decSiteTree) {
 			throw new SilverInternalError("Decoration site for " + getDebugID() + " returned a different tree: " + decSiteTree.toString());
 		}
