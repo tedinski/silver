@@ -3,12 +3,14 @@ grammar silver:compiler:extension:autoattr;
 synthesized attribute propagateDispatcher :: Propagate occurs on AttributeDclInfo;
 
 synthesized attribute emptyVal::Expr occurs on AttributeDclInfo;
+synthesized attribute appendProdName::String occurs on AttributeDclInfo;
 
 aspect default production
 top::AttributeDclInfo ::=
 {
   top.propagateDispatcher = propagateError;
   top.emptyVal = error("Internal compiler error: must be defined for all monoid attribute declarations");
+  top.appendProdName = error("Internal compiler error: must be defined for all translation monoid attribute declarations");
 }
 
 aspect production inhDcl
@@ -33,6 +35,25 @@ top::AttributeDclInfo ::= fn::String
   top.attrDefDispatcher = synthesizedAttributeDef; -- Allow normal syn equations
   top.attributionDispatcher = functorAttributionDcl;
   top.propagateDispatcher = propagateFunctor;
+}
+
+abstract production functorTransDcl
+top::AttributeDclInfo ::= fn::String
+{
+  top.fullName = fn;
+  propagate compareKey, isEqual;
+
+  production tyVar::TyVar = freshTyVar(starKind());
+  top.typeScheme = polyType([tyVar], varType(tyVar));
+  top.isSynthesized = true;
+  top.isTranslation = true;
+  
+  top.decoratedAccessHandler = transDecoratedAccessHandler;
+  top.undecoratedAccessHandler = transUndecoratedAccessErrorHandler;
+  top.dataAccessHandler = transUndecoratedAccessErrorHandler;
+  top.attrDefDispatcher = synthesizedAttributeDef; -- Allow normal syn equations
+  top.attributionDispatcher = functorAttributionDcl;
+  top.propagateDispatcher = propagateFunctorTrans;
 }
 
 abstract production monoidDcl
@@ -60,6 +81,32 @@ top::AttributeDclInfo ::= fn::String bound::[TyVar] ty::Type empty::Expr append:
   top.attrAppendDefDispatcher = synAppendColAttributeDef;
   top.attributionDispatcher = defaultAttributionDcl;
   top.propagateDispatcher = propagateMonoid;
+}
+
+abstract production monoidTransDcl
+top::AttributeDclInfo ::= fn::String bound::[TyVar] ty::Type empty::Expr append::String
+{
+  top.fullName = fn;
+  propagate compareTo, compareKey;
+  top.isEqual =
+    case top.compareTo of
+    | monoidTransDcl(fn2, _, _, empty2, append2) ->
+      fn == fn2 && top.typeScheme == top.compareTo.typeScheme && empty.unparse == empty2.unparse && append == append2
+    | _ -> false
+    end;
+  
+  top.typeScheme = polyType(bound, ^ty);
+  top.isSynthesized = true;
+  top.isTranslation = true;
+  top.emptyVal = ^empty;
+  top.appendProdName = append;
+
+  top.decoratedAccessHandler = transDecoratedAccessHandler;
+  top.undecoratedAccessHandler = transUndecoratedAccessErrorHandler;
+  top.dataAccessHandler = transUndecoratedAccessErrorHandler;
+  top.attrDefDispatcher = synthesizedAttributeDef; -- Allow normal syn equations
+  top.attributionDispatcher = defaultAttributionDcl;
+  top.propagateDispatcher = propagateMonoidTrans;
 }
 
 abstract production destructDcl
