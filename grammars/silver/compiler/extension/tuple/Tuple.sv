@@ -51,6 +51,7 @@ top::Expr ::= tuple::Expr '.' a::IntConst
   propagate grammarName, config, compiledGrammars, frame, env, flowEnv, downSubst, upSubst, finalSubst, freeVars;
   tuple.decSiteVertexInfo = nothing();
   tuple.appDecSiteVertexInfo = nothing();
+  tuple.dispatchFlowDeps = [];
   tuple.isRoot = false;
 
   local accessIndex::Integer = toInteger(a.lexeme);
