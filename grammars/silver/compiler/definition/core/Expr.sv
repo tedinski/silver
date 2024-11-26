@@ -18,7 +18,7 @@ tracked nonterminal ExprLHSExpr with
 flowtype unparse {} on Expr, Exprs, ExprInhs, ExprInh, ExprLHSExpr;
 flowtype freeVars {frame} on Expr, Exprs, ExprInhs, ExprInh, ExprLHSExpr;
 flowtype Expr =
-  forward {grammarName, env, flowEnv, downSubst, finalSubst, frame, isRoot, compiledGrammars, config, decSiteVertexInfo, appDecSiteVertexInfo},
+  forward {grammarName, env, flowEnv, downSubst, finalSubst, frame, isRoot, compiledGrammars, config, decSiteVertexInfo, appDecSiteVertexInfo, dispatchFlowDeps},
   decorate {forward, alwaysDecorated, originRules},
   errors {forward}, typerep {forward};
 
@@ -997,11 +997,11 @@ tracked nonterminal AppExprs with
 flowtype AppExprs =
   decorate {
     config, grammarName, env, frame, compiledGrammars, appExprTypereps, appExprApplied, originRules,
-    downSubst, finalSubst, flowEnv, appIndexOffset
+    downSubst, finalSubst, flowEnv, appIndexOffset, dispatchFlowDeps
   },
   errors {
     config, grammarName, env, frame, compiledGrammars, appExprTypereps, appExprApplied,
-    downSubst, finalSubst, flowEnv, decSiteVertexInfo, appProd, appIndexOffset
+    downSubst, finalSubst, flowEnv, decSiteVertexInfo, dispatchFlowDeps, appProd, appIndexOffset
   };
 
 tracked nonterminal AppExpr with
@@ -1010,11 +1010,11 @@ tracked nonterminal AppExpr with
 flowtype AppExpr =
   decorate {
     config, grammarName, env, frame, compiledGrammars, appExprIndex, appExprTyperep, appExprApplied, originRules,
-    downSubst, finalSubst, flowEnv, appIndexOffset
+    downSubst, finalSubst, flowEnv, appIndexOffset, dispatchFlowDeps
   },
   errors {
     config, grammarName, env, frame, compiledGrammars, appExprIndex, appExprTyperep, appExprApplied,
-    downSubst, finalSubst, flowEnv, decSiteVertexInfo, appProd, appIndexOffset
+    downSubst, finalSubst, flowEnv, decSiteVertexInfo, dispatchFlowDeps, appProd, appIndexOffset
   };
 
 propagate config, grammarName, env, freeVars, frame, compiledGrammars, errors, originRules on AppExprs, AppExpr;

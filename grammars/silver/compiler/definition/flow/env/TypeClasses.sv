@@ -13,6 +13,7 @@ top::ClassBodyItem ::= id::Name '::' cl::ConstraintList '=>' ty::TypeExpr '=' e:
   e.decSiteVertexInfo = nothing();
   e.alwaysDecorated = false;
   e.appDecSiteVertexInfo = nothing();
+  e.dispatchFlowDeps = [];
 }
 aspect production instanceBodyItem
 top::InstanceBodyItem ::= id::QName '=' e::Expr ';'
@@ -20,4 +21,5 @@ top::InstanceBodyItem ::= id::QName '=' e::Expr ';'
   e.decSiteVertexInfo = nothing();
   e.alwaysDecorated = false;
   e.appDecSiteVertexInfo = nothing();
+  e.dispatchFlowDeps = [];
 }

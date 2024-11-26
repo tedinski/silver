@@ -890,10 +890,94 @@ top::Expr ::= 'decorate' e::Expr 'with' '{' inh::ExprInhs '}'
 aspect production decorationSiteExpr
 top::Expr ::= '@' e::Expr
 {
+  -- Check for an inherited attribute supplied via sharing, that may be needed to determine dispatching.
+
+  -- The dependencies for determining the production(s) under which this tree is shared:
+  local dispatchDeps :: set:Set<FlowVertex> =
+    set:fromList(expandGraph(top.dispatchFlowDeps, top.frame.flowGraph));
+  
+  -- All inherited attributes known locally to occur on the shared tree.
+  -- We don't need *all* inherited attributes, because only the ones we know about
+  -- could be a dependency for dispatching.
+  local sharedRefInhs :: [String] = getInhAndInhOnTransAttrsOn(e.finalType.typeName, top.env);
+
+  -- Inherited attributes on the shared tree that might be depended upon by dispatching.
+  local dispatchDepsOnRef :: [String] =
+    case e.flowVertexInfo of
+    | just(localVertexType(fName)) when isForwardProdAttr(fName, top.env) -> []
+    | just(vt) -> filter(\ i::String ->
+        set:contains(vt.inhVertex(i), dispatchDeps) &&
+        !vertexHasInhEq(top.frame.fullName, vt, i, top.flowEnv),
+        sharedRefInhs)
+    | _ -> []
+    end;
+
+  top.errors <-
+    if top.config.warnMissingInh
+    then
+      case e.flowVertexInfo of
+      | just(vt) when !null(dispatchDepsOnRef) ->
+        [mwdaWrnFromOrigin(top, s"Dispatching may require inherited attribute(s) ${implode(", ", dispatchDepsOnRef)} on ${vt.vertexName}, but these attribute(s) are supplied here after dispatching")]
+      | _ -> []
+      end
+    else [];
+
   -- Sharing a forward production attribute somewhere that isn't already being decorated as the forward
   -- may cause hidden transitive dependency issues for attributes we don't know about, so we forbid this.
   top.errors <- 
     if top.config.warnMissingInh
+    then
+      case e.flowVertexInfo of
+      | just(localVertexType(fName)) when isForwardProdAttr(fName, top.env) ->
+        case top.decSiteVertexInfo of
+        | just(forwardVertexType_real()) -> []
+        | just(localVertexType(dSiteFName)) when isForwardProdAttr(dSiteFName, top.env) -> []
+        | _ -> [mwdaWrnFromOrigin(top, s"Forward production attribute ${fName} may only be shared in a forward decoration site")]
+        end
+      | _ -> []
+      end
+    else [];
+}
+
+aspect production presentAppExpr
+top::AppExpr ::= e::Expr
+{
+  -- Same checks as for decorationSiteExpr, for application of a prod with a shared signature param.
+
+  -- The dependencies for determining the production(s) under which this tree is shared:
+  local dispatchDeps :: set:Set<FlowVertex> =
+    set:fromList(expandGraph(top.dispatchFlowDeps, top.frame.flowGraph));
+  
+  -- All inherited attributes known locally to occur on the shared tree.
+  -- We don't need *all* inherited attributes, because only the ones we know about
+  -- could be a dependency for dispatching.
+  local sharedRefInhs :: [String] = getInhAndInhOnTransAttrsOn(e.finalType.typeName, top.env);
+
+  -- Inherited attributes on the shared tree that might be depended upon by dispatching.
+  local dispatchDepsOnRef :: [String] =
+    case e.flowVertexInfo of
+    | just(localVertexType(fName)) when isForwardProdAttr(fName, top.env) -> []
+    | just(vt) -> filter(\ i::String ->
+        set:contains(vt.inhVertex(i), dispatchDeps) &&
+        !vertexHasInhEq(top.frame.fullName, vt, i, top.flowEnv),
+        sharedRefInhs)
+    | _ -> []
+    end;
+
+  top.errors <-
+    if top.config.warnMissingInh && sigIsShared && isForwardParam
+    then
+      case e.flowVertexInfo of
+      | just(vt) when !null(dispatchDepsOnRef) ->
+        [mwdaWrnFromOrigin(top, s"Dispatching may require inherited attribute(s) ${implode(", ", dispatchDepsOnRef)} on ${vt.vertexName}, but these attribute(s) are supplied here after dispatching")]
+      | _ -> []
+      end
+    else [];
+
+  -- Sharing a forward production attribute somewhere that isn't already being decorated as the forward
+  -- may cause hidden transitive dependency issues for attributes we don't know about, so we forbid this.
+  top.errors <- 
+    if top.config.warnMissingInh && sigIsShared && isForwardParam
     then
       case e.flowVertexInfo of
       | just(localVertexType(fName)) when isForwardProdAttr(fName, top.env) ->

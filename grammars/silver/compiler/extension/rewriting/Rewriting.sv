@@ -54,6 +54,7 @@ top::Expr ::= 'traverse' n::QName '(' es::AppExprs ',' anns::AnnoAppExprs ')'
   es.appExprTypereps = repeat(nonterminalType("silver:rewrite:Strategy", [], false, false), numChildren);
   es.appExprApplied = n.unparse;
   es.decSiteVertexInfo = nothing();
+  es.dispatchFlowDeps = [];
   es.appProd = nothing();
   es.appIndexOffset = 0;
   anns.appExprApplied = n.unparse;

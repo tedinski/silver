@@ -13,12 +13,12 @@ propagate @expectedMonad on Expr;
 
 
 type MonadInhs = {
-  downSubst, finalSubst, frame, grammarName, decSiteVertexInfo, alwaysDecorated, appDecSiteVertexInfo, isRoot,
+  downSubst, finalSubst, frame, grammarName, decSiteVertexInfo, alwaysDecorated, appDecSiteVertexInfo, dispatchFlowDeps, isRoot,
   compiledGrammars, config, env, flowEnv, expectedMonad, mDownSubst
 };
 
 flowtype merrors {
-  downSubst, finalSubst, frame, grammarName, decSiteVertexInfo, alwaysDecorated, appDecSiteVertexInfo, isRoot,
+  downSubst, finalSubst, frame, grammarName, decSiteVertexInfo, alwaysDecorated, appDecSiteVertexInfo, dispatchFlowDeps, isRoot,
   compiledGrammars, config, env, flowEnv, expectedMonad, mDownSubst
 } on Expr;
 
@@ -203,6 +203,7 @@ top::Expr ::= e::Expr '(' es::AppExprs ',' anns::AnnoAppExprs ')'
   ne.alwaysDecorated = false;
   ne.decSiteVertexInfo = nothing();
   ne.appDecSiteVertexInfo = nothing();
+  ne.dispatchFlowDeps = [];
   ne.isRoot = false;
   local nes::AppExprs = ^es;
   nes.mDownSubst = ne.mUpSubst;
@@ -216,6 +217,7 @@ top::Expr ::= e::Expr '(' es::AppExprs ',' anns::AnnoAppExprs ')'
   nes.downSubst = top.downSubst;
   nes.alwaysDecorated = false;
   nes.decSiteVertexInfo = nothing();
+  nes.dispatchFlowDeps = [];
   nes.appProd = nothing();
   nes.appIndexOffset = 0;
   nes.appExprTypereps = reverse(performSubstitution(ne.mtyperep, ne.mUpSubst).inputTypes);
@@ -481,6 +483,7 @@ top::Expr ::= e::Expr '.' 'forward'
   ne.decSiteVertexInfo = nothing();
   ne.alwaysDecorated = false;
   ne.appDecSiteVertexInfo = nothing();
+  ne.dispatchFlowDeps = [];
   ne.isRoot = false;
   ne.monadicallyUsed = false; --this needs to change when we decorated monadic trees
 
@@ -497,6 +500,7 @@ top::Expr ::= e::Expr '.' 'forward'
   res_e.decSiteVertexInfo = nothing();
   res_e.alwaysDecorated = false;
   res_e.appDecSiteVertexInfo = nothing();
+  res_e.dispatchFlowDeps = [];
   res_e.isRoot = false;
   top.notExplicitAttributes := res_e.notExplicitAttributes;
 
