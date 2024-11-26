@@ -189,6 +189,7 @@ aspect production application
 top::Expr ::= e::Expr '(' es::AppExprs ',' anns::AnnoAppExprs ')'
 {
   propagate flowEnv;
+  e.appDecSiteVertexInfo = top.decSiteVertexInfo;
   -- Seed flow graphs with deps on top for decSiteVertexInfo, alwaysDecorated, dispatchFlowDeps
   -- needed to avoid hidden transitive deps for override eqs in curriedDispatchApplication.
   -- TODO: Perhaps possible to infer this by changing how projection stitch points work?
@@ -200,7 +201,6 @@ top::Expr ::= e::Expr '(' es::AppExprs ',' anns::AnnoAppExprs ')'
 aspect production errorApplication
 top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
 {
-  e.appDecSiteVertexInfo = nothing();
   es.decSiteVertexInfo = nothing();
   es.alwaysDecorated = false;
   es.appProd = nothing();
@@ -225,7 +225,6 @@ top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
       else 0
     | _ -> 0
     end;
-  e.appDecSiteVertexInfo = top.decSiteVertexInfo;
   es.decSiteVertexInfo = top.decSiteVertexInfo;
   es.alwaysDecorated = top.alwaysDecorated;
   -- If sharing is permitted in es, then e is a prod reference and e.flowDeps must be empty.
@@ -248,7 +247,6 @@ top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
       else 0
     | _ -> 0
     end;
-  e.appDecSiteVertexInfo = nothing();
   es.decSiteVertexInfo = nothing();
   es.alwaysDecorated = false;
   es.dispatchFlowDeps = [];
@@ -257,7 +255,6 @@ top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
 aspect production curriedDispatchApplication
 top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
 {
-  e.appDecSiteVertexInfo = nothing();
   es.appProd =
     case e of
     | productionReference(q) -> just(q.lookupValue.dcl.namedSignature)
@@ -286,7 +283,6 @@ aspect production dispatchApplication
 top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
 {
   top.flowVertexInfo = top.decSiteVertexInfo;
-  e.appDecSiteVertexInfo = top.decSiteVertexInfo;
   es.appProd =
     case e, e.finalType of
     | productionReference(q), _ -> just(q.lookupValue.dcl.namedSignature)
