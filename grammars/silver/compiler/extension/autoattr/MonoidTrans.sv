@@ -82,11 +82,9 @@ top::ProductionStmt ::= includeShared::Boolean @attr::QName
       foldr1(
         \ e1 e2 -> Silver_Expr { $qName{attr.lookupAttribute.dcl.appendProdName}($Expr{e1}, $Expr{e2}) },
         map(
-          \ i::NamedSignatureElement ->
-            access(
-              baseExpr(qName(i.elementName)),
-              '.',
-              qNameAttrOccur(^attr)),
+          \ i::NamedSignatureElement -> Silver_Expr {
+            @$name{i.elementName}.$QName{^attr}
+          },
           inputsWithAttr));
 
   -- Construct an attribute def and call with the generated arguments
