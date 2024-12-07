@@ -116,7 +116,7 @@ DecSiteTree ::= prodName::String vt::VertexType flowEnv::FlowEnv realEnv::Env
  - This is used in checking for potentially hidden transitive dependencies.
  - This mirrors the above, but we also consider sites where a tree is only conditionally shared.
  - Since we only care if a vertex is *possibly* supplied with an attribute, we can memoize the
- - vertices visited in the enitre search (using a State monad) rather than just the current branch.
+ - vertices visited in the entire search (using a State monad) rather than just the current branch.
  -
  - @param prodName The name of the production containing the vertex type.
  - @param vt The vertex type to find decoration sites for.
@@ -283,6 +283,7 @@ partial strategy attribute lookupDecSiteStep =
           neverDec()
       | _ -> alwaysDec()
       end
+  -- This is safe as the tree is traversed top-down, so the current attrToResolve is the final one.
   | depAttrDec(attrName, d) when top.attrToResolve == attrName -> ^d
   | projectedDepsDec(prodName, sigName, d) ->
       product(map(depAttrDec(_, ^d), set:toList(onlyLhsInh(expandGraph(
