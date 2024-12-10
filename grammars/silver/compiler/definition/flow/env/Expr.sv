@@ -442,7 +442,7 @@ top::Expr ::= @e::Expr @q::QNameAttrOccur
   top.flowDeps := 
     case e.flowVertexInfo of
     | just(vertex) -> vertex.synVertex(q.attrDcl.fullName) :: vertex.eqVertex ++
-      if top.finalType.isDecorated then map(vertex.inhVertex, fromMaybe([], refSet)) else []
+      map(transAttrVertexType(vertex, q.attrDcl.fullName).inhVertex, fromMaybe([], refSet))
     | nothing() -> e.flowDeps
     end;
 }
