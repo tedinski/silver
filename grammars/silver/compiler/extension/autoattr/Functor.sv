@@ -25,11 +25,10 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
   top.unparse = "attribute " ++ at.unparse ++ attl.unparse ++ " occurs on " ++ nt.unparse ++ nttl.unparse ++ ";";
   top.moduleNames := [];
 
-  local fwrdProd::AttributionDcl =
+  nondecorated local newAttl::BracketedOptTypeExprs =
     if length(attl.types) > 0
-    then defaultAttributionDcl
-    else altParamAttributionDcl(
-      defaultAttributionDcl,
+    then ^attl
+    else
       botlSome(
         bTypeList(
           '<',
@@ -41,9 +40,9 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
                 ^tl)
             | botlNone() -> nominalTypeExpr(nt.qNameType)
             end),
-          '>')));
-  
-  forwards to fwrdProd(@at, @attl, @nt, @nttl);
+          '>'));
+
+  forwards to altParamAttributionDcl(@at, @attl, @nt, @nttl, defaultAttributionDcl, newAttl);
 }
 
 {--

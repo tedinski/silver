@@ -82,8 +82,9 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
   
   top.errors := if !null(localErrors) then localErrors else forward.errors;
 
-  local fwrdProd::AttributionDcl =
+  forwards to
     extraDclsAttributionDcl(
+      @at, @attl, @nt, @nttl,
       altParamAttributionDcl(
         defaultAttributionDcl,
         botlSome(
@@ -104,8 +105,6 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
             attributionDcl(
               'attribute', qName(n), ^attl, 'occurs', 'on', ^nt, ^nttl, ';'),
           at.lookupAttribute.dcl.liftedStrategyNames)));
-  
-  forwards to fwrdProd(@at, @attl, @nt, @nttl);
 }
 
 {--

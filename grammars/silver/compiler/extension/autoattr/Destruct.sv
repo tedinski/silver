@@ -25,46 +25,42 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
   top.unparse = "attribute " ++ at.unparse ++ attl.unparse ++ " occurs on " ++ nt.unparse ++ nttl.unparse ++ ";";
   top.moduleNames := [];
 
-  local fwrdProd::AttributionDcl =
+  nondecorated local newAttl::BracketedOptTypeExprs =
     case attl.types of
     | [] ->
-      altParamAttributionDcl(
-        defaultAttributionDcl,
-        botlSome(
-          bTypeList(
-            '<',
-            typeListCons(
-              case nttl of
-              | botlSome(tl) -> 
-                appTypeExpr(
-                  nominalTypeExpr(nt.qNameType),
-                  ^tl)
-              | botlNone() -> nominalTypeExpr(nt.qNameType)
-              end,
-              typeListSingle(
-                typerepTypeExpr(inhSetType([])))),
-            '>')))
+      botlSome(
+        bTypeList(
+          '<',
+          typeListCons(
+            case nttl of
+            | botlSome(tl) -> 
+              appTypeExpr(
+                nominalTypeExpr(nt.qNameType),
+                ^tl)
+            | botlNone() -> nominalTypeExpr(nt.qNameType)
+            end,
+            typeListSingle(
+              typerepTypeExpr(inhSetType([])))),
+          '>'))
     | [i] ->
-      altParamAttributionDcl(
-        defaultAttributionDcl,
-        botlSome(
-          bTypeList(
-            '<',
-            typeListCons(
-              case nttl of
-              | botlSome(tl) -> 
-                appTypeExpr(
-                  nominalTypeExpr(nt.qNameType),
-                  ^tl)
-              | botlNone() -> nominalTypeExpr(nt.qNameType)
-              end,
-              typeListSingle(
-                typerepTypeExpr(i))),
-            '>')))
-    | _ -> defaultAttributionDcl
+      botlSome(
+        bTypeList(
+          '<',
+          typeListCons(
+            case nttl of
+            | botlSome(tl) -> 
+              appTypeExpr(
+                nominalTypeExpr(nt.qNameType),
+                ^tl)
+            | botlNone() -> nominalTypeExpr(nt.qNameType)
+            end,
+            typeListSingle(
+              typerepTypeExpr(i))),
+          '>'))
+    | _ -> ^attl
     end;
   
-  forwards to fwrdProd(@at, @attl, @nt, @nttl);
+  forwards to altParamAttributionDcl(@at, @attl, @nt, @nttl, defaultAttributionDcl, newAttl);
 }
 
 {--

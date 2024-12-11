@@ -59,6 +59,7 @@ top::Expr ::= e::Expr t::TypeExpr pr::PrimPatterns f::Expr
   propagate config, grammarName, env, freeVars, frame, compiledGrammars, finalSubst, originRules, flowEnv;
   e.decSiteVertexInfo = nothing();
   e.appDecSiteVertexInfo = nothing();
+  e.dispatchFlowDeps = [];
   e.isRoot = false;
 
   e.downSubst = top.downSubst;
