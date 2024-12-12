@@ -223,7 +223,7 @@ top::QNameAttrOccur ::= at::QName
     -- If more than one attribute on the same _short name_ occurs, raise ambiguity
     else if length(attrs) > 1 then
       [errFromOrigin(at, "Ambiguous reference to attribute occurring on '" ++ prettyType(top.attrFor) ++ "'. Possibilities are:\n" ++ printPossibilities(attrs))]
-    -- If this same attribute has multiple occurences (must be due to orphaned occurs)
+    -- If this same attribute has multiple occurrences (must be due to orphaned occurs)
     else []; {-if length(dcls) > 1 then
       [errFromOrigin(at, "There are erroneously multiple attribute occurrences for '" ++ at.name ++ "'. Possibilities are:\n" ++ printPossibilities(dcls))]
     else [];-}
@@ -240,7 +240,7 @@ top::QNameAttrOccur ::= at::QName
   top.typerep = if top.found then determineAttributeType(head(dcls), top.attrFor) else errorType();
   top.dcl = ^resolvedDcl;
   top.attrDcl = if top.found then head(attrs) else
-    -- Workaround fix for proper error reporting - appairently there are some places where this is still demanded.
+    -- Workaround fix for proper error reporting - apparently there are some places where this is still demanded.
     if at.lookupAttribute.found then at.lookupAttribute.dcl else
     error("INTERNAL ERROR: Accessing dcl of attribute " ++ at.name ++ " at " ++ top.grammarName ++ " " ++ at.nameLoc.unparse);
 }
