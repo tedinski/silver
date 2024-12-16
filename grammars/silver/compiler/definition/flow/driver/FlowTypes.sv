@@ -56,7 +56,7 @@ fun fullySolveFlowTypes InferState<()> ::= prods::[ProdName] = do {
   traverse_(updateFlowType, prods);
 
   -- Just iterate until no new edges are added
-  doWhile_(do {
+  doWhile_(
     map(any, traverseA(
       \ prod::ProdName -> do {
         -- Update the production graph
@@ -66,8 +66,7 @@ fun fullySolveFlowTypes InferState<()> ::= prods::[ProdName] = do {
         when_(graphUpdated, updateFlowType(prod));
         return graphUpdated;
       },
-      prods));
-  });
+      prods)));
 };
 
 {--
@@ -110,19 +109,18 @@ fun expandVertexFilterTo [(String, String)] ::= ver::FlowVertex  graph::Producti
 {--
  - Filters vertexes down to just the names of inherited attributes on the LHS
  -}
-fun filterLhsInh [String] ::= f::[FlowVertex] = foldr(collectInhs, [], f);
+global filterLhsInh :: ([String] ::= [FlowVertex]) = flatMap(collectInhs, _);
 
 {--
  - Used to filter down to just the inherited attributes (on the LHS)
  - 
  - @param f  The flow vertex in question
- - @param l  The current set of inherited attribute dependencies
- - @return  {l} with {f} added to it
+ - @return  {f} if f is an LHS Inh vertex, otherwise {}
  -}
-fun collectInhs [String] ::= f::FlowVertex  l::[String] =
+fun collectInhs [String] ::= f::FlowVertex =
   case f of
-  | lhsInhVertex(a) -> a::l
-  | _ -> l
+  | lhsInhVertex(a) -> [a]
+  | _ -> []
   end;
 
 
