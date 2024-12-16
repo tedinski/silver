@@ -153,7 +153,7 @@ fun prettyDecSites String ::= nest::Integer d::DecSiteTree =
         then " any of\n" ++ implode("\n", map(prettyDecSites(nest + 1, _), d.decSiteAlts))
         else if length(d.decSiteReqs) > 1
         then " all of\n" ++ implode("\n", map(prettyDecSites(nest + 1, _), d.decSiteReqs))
-        else " " ++ prettyDecSites(nest, ^d)
+        else " " ++ d.decSitePP
     | _ -> d.decSitePP
     end;
 
