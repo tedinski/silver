@@ -1,6 +1,7 @@
 grammar silver:compiler:analysis:typechecking:core;
 
 import silver:compiler:definition:type;
+import silver:compiler:definition:flow:env only splitTransAttrInh;
 
 synthesized attribute leftpp :: String;
 synthesized attribute rightpp :: String;
@@ -80,4 +81,17 @@ fun specializeRefSet Substitution ::= s::Substitution t::Type =
   case performSubstitution(t, s) of
   | decoratedType(_, varType(i)) -> composeSubst(s, subst(i, inhSetType([])))
   | _ -> s
+  end;
+
+fun specializeTransRefSet Substitution ::= s::Substitution t::Type base::Type transAttr::String =
+  case performSubstitution(base, s), performSubstitution(t, s) of
+  | decoratedType(_, inhSetType(inhs)), decoratedType(_, varType(i)) ->
+    composeSubst(s, subst(i, inhSetType(filterMap(dropTransAttrPrefix(transAttr, _), inhs))))
+  | _, _ -> s
+  end;
+
+fun dropTransAttrPrefix Maybe<String> ::= transAttr::String attr::String =
+  case splitTransAttrInh(attr) of
+  | just((t, i)) when t == transAttr -> just(i)
+  | _ -> nothing()
   end;
