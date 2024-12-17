@@ -74,6 +74,7 @@ top::AGDcl ::= 'abstract' 'production' id::Name d::ProductionImplements ns::Prod
  -}
 monoid attribute isDispatchApplication :: (Boolean ::= NamedSignature) with pure(false), lift2(conj, _, _)
   occurs on Expr, PrimPatterns, PrimPattern;
+flowtype isDispatchApplication {decorate} on Expr;
 
 aspect isDispatchApplication on top::Expr using := of
 | dispatchApplication(e, es, _) -> \ dSig::NamedSignature ->

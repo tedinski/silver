@@ -24,7 +24,7 @@ top::DecSiteTree ::=
 
 {--
  - No attributes can be known to be supplied.
- - Primarilly, denotes a cycle in decoration site resolution.
+ - Primarily, denotes a cycle in decoration site resolution.
  -}
 production neverDec
 top::DecSiteTree ::= 

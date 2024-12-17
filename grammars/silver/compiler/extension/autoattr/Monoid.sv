@@ -56,6 +56,7 @@ top::AGDcl ::= 'monoid' 'attribute' a::Name tl::BracketedOptTypeExprs '::' te::T
   e.decSiteVertexInfo = nothing();
   e.alwaysDecorated = false;
   e.appDecSiteVertexInfo = nothing();
+  e.dispatchFlowDeps = [];
   
   forwards to
     collectionAttributeDclSyn(

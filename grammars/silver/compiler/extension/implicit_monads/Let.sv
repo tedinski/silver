@@ -22,6 +22,7 @@ top::Expr ::= la::AssignExpr  e::Expr
   ne.decSiteVertexInfo = top.decSiteVertexInfo;
   ne.alwaysDecorated = top.alwaysDecorated;
   ne.appDecSiteVertexInfo = nothing();
+  ne.dispatchFlowDeps = [];
   ne.isRoot = top.isRoot;
 
   la.mDownSubst = top.mDownSubst;
