@@ -11,4 +11,11 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
     if at.lookupAttribute.found && at.lookupAttribute.dcl.isTranslation && checkNT.typeerror
     then [errFromOrigin(top, s"Occurrence of translation attribute ${at.lookupAttribute.fullName} must have a nonterminal type.  Instead it is of type " ++ checkNT.leftpp)]
     else [];
+  
+  local transTargets :: [String] = getTranslationAttrTargets([], protoatty, top.env);
+  top.errors <-
+    if nt.lookupType.found && at.lookupAttribute.found && at.lookupAttribute.dcl.isTranslation && !checkNT.typeerror
+    && contains(nt.lookupType.fullName, transTargets)
+    then [errFromOrigin(top, s"Cycle in translation attributes! ${at.lookupAttribute.fullName} translates ${nt.lookupType.fullName} to ${protoatty.typeName}, but this nonterminal has translation attributes to ${implode(", ", transTargets)}.")]
+    else [];
 }
