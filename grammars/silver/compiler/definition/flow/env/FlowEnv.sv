@@ -131,6 +131,8 @@ fun vertexHasInhEq Boolean ::= prodName::String  vt::VertexType  attrName::Strin
   | rhsVertexType(sigName) -> !null(lookupInh(prodName, sigName, attrName, flowEnv))
   | localVertexType(fName) -> !null(lookupLocalInh(prodName, fName, attrName, flowEnv))
   | forwardVertexType_real() -> true
+  -- Note that we only support inh equations on trans attrs directly on a child/local,
+  -- and not chained trans attrs.
   | transAttrVertexType(rhsVertexType(sigName), transAttr) ->
     !null(lookupInh(prodName, sigName, s"${transAttr}.${attrName}", flowEnv))
   | transAttrVertexType(localVertexType(fName), transAttr) ->
@@ -144,7 +146,7 @@ fun vertexHasInhEq Boolean ::= prodName::String  vt::VertexType  attrName::Strin
   -- but here we are remotely looking for equations that might not be the direct dependency of
   -- anything in the prod flow graph.
   | lhsVertexType_real() -> false  -- Shouldn't ever be directly needed, since the LHS is never the dec site for another vertex.
-  | forwardParentVertexType() -> false  -- Same as LHS - the thing that forwared to us.
+  | forwardParentVertexType() -> false  -- Same as LHS - the thing that forwarded to us.
   end;
 
 -- used for duplicate equations checks

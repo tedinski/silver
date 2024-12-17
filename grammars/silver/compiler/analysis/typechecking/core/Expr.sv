@@ -58,7 +58,10 @@ top::Expr ::= @q::QName
 aspect production transDecoratedAccessHandler
 top::Expr ::= @e::Expr @q::QNameAttrOccur
 {
-  top.upSubst2 = specializeRefSet(top.downSubst2, top.typerep);
+  top.upSubst2 =
+    if q.attrFound
+    then specializeTransRefSet(top.downSubst2, top.typerep, e.typerep, q.attrDcl.fullName)
+    else specializeRefSet(top.downSubst2, top.typerep);
 }
 
 aspect production productionReference
