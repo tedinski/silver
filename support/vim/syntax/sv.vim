@@ -10,7 +10,7 @@ endif
 
 syn keyword svlangExternals grammar import imports exports build hiding as only option
 
-syn keyword svlangDeclarations parser attribute annotation function local closed nonterminal type occurs on production terminal marking foreign layout disambiguate action global productions lexer class default propagate tracked
+syn keyword svlangDeclarations parser attribute annotation function local closed nonterminal type occurs on production terminal marking foreign layout disambiguate action global productions lexer class default propagate tracked implements nondecorated
 
 syn keyword svlangPrimitiveTypes IO Boolean Decorated Float Function Integer Production String
 
