@@ -58,11 +58,12 @@ top::AGDcl ::= 'function' id::Name ns::FunctionSignature body::ProductionBody 'f
   top.initValues := "";
   top.postInit := "";
 
+  top.genFilesUnescapedUp := [id.name];
   top.genFiles := if null(ffidefs.ffiTranslationString)
                     then forward.genFiles
                     else 
-                    [("P" ++ id.name ++ ".java",
-                      generateFunctionClassString(body.env, top.flowEnv, top.grammarName, id.name, namedSig, "return (" ++ namedSig.outputElement.typerep.transClassType ++ ")" ++ computeSigTranslation(head(ffidefs.ffiTranslationString), namedSig) ++ ";\n")
+                    [("P" ++ escapeName(id.name, top.genFilesUnescapedDown) ++ ".java",
+                      generateFunctionClassString(body.env, top.flowEnv, top.grammarName, id.name, namedSig, "return (" ++ namedSig.outputElement.typerep.transClassType ++ ")" ++ computeSigTranslation(head(ffidefs.ffiTranslationString), namedSig) ++ ";\n", top.genFilesUnescapedDown)
                     )];
 
   top.errors <- if length(ffidefs.ffiTranslationString) > 1

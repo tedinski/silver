@@ -113,7 +113,7 @@ top::ParserComponentModifier ::=
 aspect production parserDcl
 top::AGDcl ::= 'parser' n::Name '::' t::TypeExpr '{' m::ParserComponents '}'
 {
-  local className :: String = "P" ++ n.name;
+  local className :: String = "P" ++ escapeName(n.name, top.genFilesUnescapedDown);
 
   local packageName :: String = makeName(top.grammarName);
 
@@ -131,7 +131,7 @@ top::AGDcl ::= 'parser' n::Name '::' t::TypeExpr '{' m::ParserComponents '}'
   -- do generate files for the lifted dcl. Needed to generate terminal class files.
   top.genFiles := m.genFiles ++
     [(className ++ ".java",
-          generateFunctionClassString(top.env, top.flowEnv, top.grammarName, n.name, namedSig, parseResult))];
+          generateFunctionClassString(top.env, top.flowEnv, top.grammarName, n.name, namedSig, parseResult, top.genFilesUnescapedDown))];
   
   local parseResult :: String =
     s"""return common.Util.callCopperParser(new ${packageName}.${parserName}(), c_stringToParse, c_filenameToReport);""";

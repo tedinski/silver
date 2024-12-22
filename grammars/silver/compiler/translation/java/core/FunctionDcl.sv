@@ -38,6 +38,8 @@ top::AGDcl ::= 'fun' id::Name ns::FunctionSignature '=' e::Expr ';'
 aspect production functionDcl
 top::AGDcl ::= 'function' id::Name ns::FunctionSignature body::ProductionBody
 {
+  local className :: String = "P" ++ escapeName(id.name, top.genFilesUnescapedDown);
+
   top.setupInh := body.setupInh;
   top.initProd := s"\t\t//FUNCTION ${id.name} ${ns.unparse}\n" ++ body.translation;
 
@@ -55,8 +57,9 @@ s"""			final common.DecoratedNode context = new P${id.name}(${argsAccess}).decor
 			return (${namedSig.outputElement.typerep.transType})(${head(body.returnExpr).translation});
 """;
 
+  top.genFilesUnescapedUp := [id.name];
   top.genFiles :=
-    [(s"P${id.name}.java", generateFunctionClassString(body.env, top.flowEnv, top.grammarName, id.name, namedSig, funBody))] ++
+    [(s"${className}.java", generateFunctionClassString(body.env, top.flowEnv, top.grammarName, id.name, namedSig, funBody, top.genFilesUnescapedDown))] ++
     if id.name == "main" 
 	then [("Main.java", generateMainClassString(top.grammarName, !typeIOValFailed))] -- !typeIOValFailed true if main type used was IOVal<Integer>
     else [];
@@ -85,9 +88,9 @@ s"""			final common.DecoratedNode context = new P${id.name}(${argsAccess}).decor
 }
 
 function generateFunctionClassString
-String ::= env::Env flowEnv::FlowEnv whatGrammar::String whatName::String whatSig::NamedSignature whatResult::String
+String ::= env::Env flowEnv::FlowEnv whatGrammar::String whatName::String whatSig::NamedSignature whatResult::String genFilesUnescapedDown::[String]
 {
-  local className :: String = "P" ++ whatName;
+  local className :: String = "P" ++ escapeName(whatName, genFilesUnescapedDown);
 
   local localVar :: String = 
     s"count_local__ON__${makeIdName(whatGrammar)}_${whatName}";

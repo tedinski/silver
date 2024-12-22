@@ -24,6 +24,7 @@ top::AGDcl ::= quals::NTDeclQualifiers 'nonterminal' id::Name tl::BracketedOptTy
     map(makeAnnoName, map((.elementName), myAnnos)) ++
 	if wantsTracking then ["common.Tracked"] else [];
   
+  top.genFilesUnescapedUp := [id.name];
   top.genFiles := [(className ++ ".java", s"""
 package ${makeName(top.grammarName)};
 

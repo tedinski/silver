@@ -26,6 +26,7 @@ top::RootSpec ::= g::Grammar  _ _ _ _ _
     ("Silver.svi", serInterface)
   ];
 
+  g.genFilesUnescapedDown = map(toLowerCase, g.genFilesUnescapedUp);
   top.genFiles := g.genFiles ++
   [("Init.java", s"""
 package ${makeName(g.declaredName)};

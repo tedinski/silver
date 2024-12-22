@@ -9,6 +9,7 @@ top::AGDcl ::= 'annotation' a::QName tl::BracketedOptTypeExprs '::' te::TypeExpr
 -- It should be fine, though. If we're a tv, then it's 'Object' and anything
 -- else will be a subtype...
 
+  top.genFilesUnescapedUp := [a.name];
   top.genFiles := [(className ++ ".java", s"""
 
 package ${makeName(top.grammarName)};

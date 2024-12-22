@@ -3,13 +3,14 @@ grammar silver:compiler:modification:concisefunctions:java;
 aspect production shortFunctionDcl
 top::AGDcl ::= _ id::Name ns::FunctionSignature '=' e::Expr ';'
 {
-  local className :: String = "P" ++ id.name;
+  local className :: String = "P" ++ escapeName(id.name, top.genFilesUnescapedDown);
   local commaIfArgs :: String = if length(namedSig.contexts) + length(namedSig.inputElements) != 0 then "," else "";
 
   local contexts::Contexts = foldContexts(namedSig.contexts);
   contexts.boundVariables = namedSig.freeVariables;
 
   -- This mirrors normal function translation, except that it doesn't inherit from Node.
+  top.genFilesUnescapedUp := [id.name];
   top.genFiles := [(className ++ ".java", s"""
 package ${makeName(top.grammarName)};
 

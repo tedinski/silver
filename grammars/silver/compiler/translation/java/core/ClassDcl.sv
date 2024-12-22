@@ -3,8 +3,9 @@ grammar silver:compiler:translation:java:core;
 aspect production typeClassDcl
 top::AGDcl ::= 'class' cl::ConstraintList '=>' id::QNameType var::TypeExpr '{' body::ClassBody '}'
 {
-  local className :: String = "C" ++ last(explode(":", fName));
+  local className :: String = "C" ++ escapeName(id.name, top.genFilesUnescapedDown);
 
+  top.genFilesUnescapedUp := [id.name];
   top.genFiles := [(className ++ ".java", s"""
 
 package ${makeName(top.grammarName)};

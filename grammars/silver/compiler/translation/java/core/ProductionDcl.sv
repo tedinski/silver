@@ -5,7 +5,7 @@ import silver:compiler:driver;
 aspect production productionDcl
 top::AGDcl ::= 'abstract' 'production' id::Name d::ProductionImplements ns::ProductionSignature body::ProductionBody
 {
-  local className :: String = "P" ++ id.name;
+  local className :: String = "P" ++ escapeName(id.name, top.genFilesUnescapedDown);
 
   top.setupInh := body.setupInh;
   top.initProd := s"\t\t${className}.initProductionAttributeDefinitions();\n"
@@ -64,6 +64,7 @@ top::AGDcl ::= 'abstract' 'production' id::Name d::ProductionImplements ns::Prod
   local contexts::Contexts = foldContexts(namedSig.contexts);
   contexts.boundVariables = namedSig.freeVariables;
 
+  top.genFilesUnescapedUp := [id.name];
   top.genFiles := [(className ++ ".java", s"""
 package ${makeName(top.grammarName)};
 

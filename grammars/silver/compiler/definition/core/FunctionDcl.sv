@@ -1,5 +1,7 @@
 grammar silver:compiler:definition:core;
 
+import silver:compiler:translation:java:core only escapeName, genFilesUnescapedDown;
+
 tracked nonterminal FunctionSignature with config, grammarName, env, unparse, errors, defs, constraintDefs, occursDefs, namedSignature, signatureName;
 tracked nonterminal FunctionLHS with config, grammarName, env, unparse, errors, defs, outputElement;
 
@@ -10,7 +12,7 @@ top::AGDcl ::= 'function' id::Name ns::FunctionSignature body::ProductionBody
 {
   top.unparse = "function " ++ id.unparse ++ "\n" ++ ns.unparse ++ "\n" ++ body.unparse; 
 
-  production fName :: String = top.grammarName ++ ":" ++ id.name;
+  production fName :: String = top.grammarName ++ ":" ++ escapeName(id.name, top.genFilesUnescapedDown);
   production namedSig :: NamedSignature = ns.namedSignature;
 
   top.defs := funDef(top.grammarName, id.nameLoc, namedSig) ::

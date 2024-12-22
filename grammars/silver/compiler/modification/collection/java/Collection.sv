@@ -250,5 +250,6 @@ top::ProductionStmt ::= @dl::DefLHS @attr::QNameAttrOccur  {- <- -} e::Expr
 }
 
 
-fun makeCAClassName String ::= s::String = substituteLast(".", ".CA", makeName(s));
+fun makeCAClassName String ::= s::String genFilesUnescapedDown::[String] =
+  substituteLast(".", ".CA", makeName(s), genFilesUnescapedDown);
 
