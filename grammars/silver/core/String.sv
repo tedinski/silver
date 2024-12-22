@@ -246,6 +246,34 @@ Boolean ::= str::String
 }
 
 @{--
+ - Converts this String to lowercase. See Java's String.toLowerCase().
+ -
+ - @param str  The string to convert.
+ - @return  The lowercase string.
+ -}
+function toLowerCase
+String ::= str::String
+{
+  return error("Not Yet Implemented: toLowerCase");
+} foreign {
+  "java" : return "(new common.StringCatter(%str%.toString().toLowerCase()))";
+}
+
+@{--
+ - Converts this String to uppercase. See Java's String.toUpperCase().
+ -
+ - @param str  The string to convert.
+ - @return  The uppercase string.
+ -}
+function toUpperCase
+String ::= str::String
+{
+  return error("Not Yet Implemented: toUpperCase");
+} foreign {
+  "java" : return "(new common.StringCatter(%str%.toString().toUpperCase()))";
+}
+
+@{--
  - Safely converts a string to an integer.
  -
  - @param str  The string to convert
