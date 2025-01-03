@@ -51,6 +51,7 @@ top::AGDcl ::= 'monoid' 'translation' 'attribute' a::Name tl::BracketedOptTypeEx
   e.decSiteVertexInfo = nothing();
   e.alwaysDecorated = false;
   e.appDecSiteVertexInfo = nothing();
+  e.dispatchFlowDeps = [];
   
   forwards to defsAGDcl(
     [attrDef(defaultEnvItem(monoidTransDcl(fName, tl.freeVariables, te.typerep, ^e, app.lookupValue.fullName, sourceGrammar=top.grammarName, sourceLocation=a.nameLoc)))]);
