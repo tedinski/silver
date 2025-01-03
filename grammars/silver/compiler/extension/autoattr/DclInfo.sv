@@ -37,25 +37,6 @@ top::AttributeDclInfo ::= fn::String
   top.propagateDispatcher = propagateFunctor;
 }
 
-abstract production functorTransDcl
-top::AttributeDclInfo ::= fn::String
-{
-  top.fullName = fn;
-  propagate compareKey, isEqual;
-
-  production tyVar::TyVar = freshTyVar(starKind());
-  top.typeScheme = polyType([tyVar], varType(tyVar));
-  top.isSynthesized = true;
-  top.isTranslation = true;
-  
-  top.decoratedAccessHandler = transDecoratedAccessHandler;
-  top.undecoratedAccessHandler = transUndecoratedAccessErrorHandler;
-  top.dataAccessHandler = transUndecoratedAccessErrorHandler;
-  top.attrDefDispatcher = synthesizedAttributeDef; -- Allow normal syn equations
-  top.attributionDispatcher = functorAttributionDcl;
-  top.propagateDispatcher = propagateFunctorTrans;
-}
-
 abstract production monoidDcl
 top::AttributeDclInfo ::= fn::String bound::[TyVar] ty::Type empty::Expr append::Operation
 {
