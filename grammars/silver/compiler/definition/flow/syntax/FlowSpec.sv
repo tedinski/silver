@@ -204,7 +204,7 @@ top::FlowSpecInh ::= transSyn::QNameAttrOccur '.' inh::FlowSpecInh
     if transSyn.attrFound
     then map(\ i -> s"${transSyn.attrDcl.fullName}.${i}", filter(notTransAttr, inh.inhList))
     else [];
-  top.refList := [];  -- TODO: Technically, we could have cycles involving translation attr flow specs
+  top.refList := [];  -- TODO: An (erroneous) cycle in translation attr occurrences could lead to a crash here.
 
   transSyn.attrFor = top.onNt;
   inh.onNt = transSyn.typerep;
@@ -212,9 +212,6 @@ top::FlowSpecInh ::= transSyn::QNameAttrOccur '.' inh::FlowSpecInh
   top.errors <-
     if !transSyn.found || transSyn.attrDcl.isSynthesized && transSyn.attrDcl.isTranslation then []
     else [errFromOrigin(transSyn, transSyn.name ++ " is not a translation attribute and so cannot be within a flow type")];
-  top.errors <-
-    if all(map(notTransAttr, inh.inhList)) then []
-    else [errFromOrigin(inh, "Chained translation attributes are not currently supported in flow types")];
 }
 
 fun notTransAttr Boolean ::= a::String = indexOf(".", a) == -1;
