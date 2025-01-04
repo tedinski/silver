@@ -569,7 +569,7 @@ top::DefLHS ::= @q::QName @attr::QNameAttrOccur
   top.errors <-
     if existingProblems then []
     else if !top.defLHSattr.attrDcl.isInherited
-    then [errFromOrigin(attr, s"Attribute '${attr.name}' is not inherited and cannot be defined on '${top.unparse}'")]
+    then [errFromOrigin(top.defLHSattr, s"Attribute '${top.defLHSattr.name}' is not inherited and cannot be defined on '${top.unparse}'")]
     else [];
   
   local ty::Type = q.lookupValue.typeScheme.monoType;
@@ -593,7 +593,7 @@ top::DefLHS ::= @q::QName @attr::QNameAttrOccur
   top.errors <-
     if existingProblems then []
     else if !top.defLHSattr.attrDcl.isInherited
-    then [errFromOrigin(attr, s"Attribute '${attr.name}' is not inherited and cannot be defined on '${top.unparse}'")]
+    then [errFromOrigin(top.defLHSattr, s"Attribute '${top.defLHSattr.name}' is not inherited and cannot be defined on '${top.unparse}'")]
     else [];
   
   local ty::Type = q.lookupValue.typeScheme.monoType;
