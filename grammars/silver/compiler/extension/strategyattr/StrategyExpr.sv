@@ -859,7 +859,11 @@ top::StrategyExpr ::= id::Name ty::TypeExpr ml::MRuleList
       caseExpr(
         [Silver_Expr { $name{top.frame.signature.outputElement.elementName} }],
         ml.totalTranslation, false,
-        Silver_Expr { silver:core:error("Internal error: total rule did not match: " ++ $Expr{stringConst(terminal(String_t, s"\"${top.unparse}\""))}) },
+        Silver_Expr {
+          silver:core:error(
+            "Internal error: total rule did not match: " ++
+            $Expr{stringConst(terminal(String_t, s"\"${escapeString(top.unparse)}\""))})
+        },
         ty.typerep);
     top.totalTranslation =
       if top.frame.signature.outputElement.elementName == id.name
