@@ -57,7 +57,7 @@ import common.SilverCopperParser;
 import edu.umn.cs.melt.lsp4jutil.CopperParserNodeFactory;
 import edu.umn.cs.melt.lsp4jutil.CopperSemanticTokenEncoder;
 import edu.umn.cs.melt.lsp4jutil.Util;
-import silver.compiler.definition.core.NRoot;
+import silver.compiler.definition.core.NFile;
 
 /**
  * Implementation of LSP text document and workspace services for Silver.
@@ -214,7 +214,7 @@ public class SilverLanguageService implements TextDocumentService, WorkspaceServ
 
     private CopperSemanticTokenEncoder semanticTokenEncoder = null;
     private CopperParserNodeFactory parserFn = null;
-    public void setParserFactory(Supplier<SilverCopperParser<NRoot>> parserFactory) {
+    public void setParserFactory(Supplier<SilverCopperParser<NFile>> parserFactory) {
         semanticTokenEncoder = new CopperSemanticTokenEncoder(parserFactory, tokenTypes, tokenModifiers);
         parserFn = new CopperParserNodeFactory(parserFactory);
     }

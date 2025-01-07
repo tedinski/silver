@@ -7,7 +7,7 @@ imports silver:util:cmdargs;
 
 exports silver:compiler:driver:util;
 
-type SVParser = (ParseResult<Root> ::= String String);
+type SVParser = (ParseResult<File> ::= String String);
 
 {--
  - Run the silver compiler, as if invoked from the command line.
