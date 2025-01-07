@@ -51,6 +51,7 @@ exports silver:compiler:extension:attrsection;
 exports silver:compiler:extension:implicit_monads;
 exports silver:compiler:extension:data;
 exports silver:compiler:extension:deriving;
+exports silver:compiler:extension:opersection;
 
 -- Other generally useful stuff:
 exports silver:compiler:translation:java;
