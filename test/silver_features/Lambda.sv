@@ -52,7 +52,8 @@ function failsLambdaType
 -- See Issue #825
 
 
-global errLambda::(String ::= Integer) = \x::SomeUndefinedType -> "s";
-
+wrongCode
+  "Undeclared type 'SomeUndefinedType'"
+  {global errLambda::(String ::= Integer) = \x::SomeUndefinedType -> "s";}
 
 -- End Issue #825
