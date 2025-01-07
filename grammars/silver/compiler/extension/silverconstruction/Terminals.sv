@@ -10,6 +10,7 @@ marking terminal SilverTypeExpr_t       'Silver_TypeExpr'       lexer classes {K
 lexer class Antiquote extends SPECOP;
 
 terminal AntiquoteExpr_t              '$Expr'              lexer classes {Antiquote};
+terminal AntiquoteAppExpr_t           '$AppExpr'           lexer classes {Antiquote};
 terminal AntiquoteExprInhs_t          '$ExprInhs'          lexer classes {Antiquote};
 terminal AntiquoteTypeExpr_t          '$TypeExpr'          lexer classes {Antiquote};
 terminal AntiquoteConstraintList_t    '$ConstraintList'    lexer classes {Antiquote};
