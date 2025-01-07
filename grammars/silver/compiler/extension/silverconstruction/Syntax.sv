@@ -60,12 +60,13 @@ top::Expr ::= '$Expr' '{' e::Expr '}'
 }
 
 concrete production antiquoteAppExpr
-top::Expr ::= '$AppExpr' '{' e::AppExpr '}'
+top::AppExpr ::= '$AppExpr' '{' e::Expr '}'
 {
   top.unparse = s"$$AppExpr{${e.unparse}}";
   forwards to
-    errorExpr(
-      [errFromOrigin(top, "$AppExpr should not occur outside of quoted Silver literal")]);
+    presentAppExpr(
+      errorExpr(
+        [errFromOrigin(top, "$AppExpr should not occur outside of quoted Silver literal")]));
 }
 
 concrete production antiquoteExprInhs

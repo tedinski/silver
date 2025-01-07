@@ -8,6 +8,7 @@ top::AST ::= prodName::String children::ASTs annotations::NamedASTs
 {
   directAntiquoteProductions <-
     ["silver:compiler:extension:silverconstruction:antiquoteExpr",
+     "silver:compiler:extension:silverconstruction:antiquoteAppExpr",
      "silver:compiler:extension:silverconstruction:antiquoteExprInhs",
      "silver:compiler:extension:silverconstruction:antiquoteTypeExpr",
      "silver:compiler:extension:silverconstruction:antiquoteConstraintList",
