@@ -172,7 +172,7 @@ top::DoBody ::= b::DoBinding rest::DoBody
       _,
       zipWith(
         \ i::Integer item::(String, TypeExpr) ->
-          letDoBinding(
+          letDoBindingTy(
             'let', name(item.1), '::', item.2, '=',
             select(Silver_Expr { $name{recVarName} }, 1, i + 1, length(top.recBindings)), ';'),
         range(0, length(top.recBindings)),
@@ -182,7 +182,7 @@ top::DoBody ::= b::DoBinding rest::DoBody
     then rest.mdoTransform
     else if !ts:isEmpty(newRecVars)
     then consDoBody(
-      bindDoBinding(
+      bindDoBindingTy(
         name(recVarName), '::', recVarType, '<-',
         Silver_Expr {
           mfix(
@@ -226,26 +226,6 @@ top::DoBody ::= 'return' e::Expr ';'
   top.mdoTransform = ^top;
 }
 
-concrete production bindDoBindingWOType
-top::DoBinding ::= n::Name  '<-' e::Expr ';'
-{
-  top.unparse = s"${n.unparse} <- ${e.unparse};";
-  top.boundVars <- ts:fromList([n.name]);
-  top.isApplicative = true;
-  top.appBindings = [lambdaRHSElemIdTy(^n, terminal(ColonColon_t, "::"), typerepTypeExpr(freshType()))];
-  top.appExprs = [^e];
-
-  nondecorated local cont :: Expr =
-    lambdap(
-      lambdaRHSCons(
-        lambdaRHSElemIdTy(^n, terminal(ColonColon_t, "::"), typerepTypeExpr(freshType())),
-        lambdaRHSNil()),
-      top.transformIn);
-  top.transform = mkStrFunctionInvocation("silver:core:bind", [^e, cont]);
-
-  top.recBindings = [(n.name, typerepTypeExpr(freshType()))];
-}
-
 concrete production exprDoBinding
 top::DoBinding ::= e::Expr ';'
 {
@@ -259,7 +239,7 @@ top::DoBinding ::= e::Expr ';'
   top.recBindings = [];
 }
 
-concrete production letDoBindingWOType
+concrete production letDoBinding
 top::DoBinding ::= 'let' n::Name '=' e::Expr ';'
 {
   top.unparse = s"let ${n.unparse} = ${e.unparse};";
@@ -276,7 +256,7 @@ top::DoBinding ::= 'let' n::Name '=' e::Expr ';'
   top.recBindings = [(n.name, typerepTypeExpr(freshType()))];
 }
 
-concrete production letDoBinding
+concrete production letDoBindingTy
 top::DoBinding ::= 'let' n::Name '::' t::TypeExpr '=' e::Expr ';'
 {
   top.unparse = s"let ${n.unparse}::${t.unparse} = ${e.unparse};";
@@ -294,6 +274,26 @@ top::DoBinding ::= 'let' n::Name '::' t::TypeExpr '=' e::Expr ';'
 }
 
 concrete production bindDoBinding
+top::DoBinding ::= n::Name  '<-' e::Expr ';'
+{
+  top.unparse = s"${n.unparse} <- ${e.unparse};";
+  top.boundVars <- ts:fromList([n.name]);
+  top.isApplicative = true;
+  top.appBindings = [lambdaRHSElemId(^n)];
+  top.appExprs = [^e];
+
+  nondecorated local cont :: Expr =
+    lambdap(
+      lambdaRHSCons(
+        lambdaRHSElemIdTy(^n, terminal(ColonColon_t, "::"), typerepTypeExpr(freshType())),
+        lambdaRHSNil()),
+      top.transformIn);
+  top.transform = mkStrFunctionInvocation("silver:core:bind", [^e, cont]);
+
+  top.recBindings = [(n.name, typerepTypeExpr(freshType()))];
+}
+
+concrete production bindDoBindingTy
 top::DoBinding ::= n::Name DoDoubleColon_t t::TypeExpr '<-' e::Expr ';'
 {
   top.unparse = s"${n.unparse}::${t.unparse} <- ${e.unparse};";
