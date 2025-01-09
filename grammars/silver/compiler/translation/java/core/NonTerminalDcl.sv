@@ -104,6 +104,10 @@ ${if quals.data then "" else s"""
 			)});
 			this.ref = ref;
 		}
+		@Override
+		public DecorationSiteWrapper updateAnnos(Object[] annos) {
+			throw new common.exceptions.SilverInternalError("Decoration site wrapper node should never have annotations updated!");
+		}
 
 		@Override
 		public common.DecoratedNode decorate(final common.DecoratedNode parent, final common.Lazy[] inhs, final common.Lazy decSite) {

@@ -50,6 +50,10 @@ top::AGDcl ::= 'abstract' 'production' id::Name d::ProductionImplements ns::Prod
   local copyAnno :: (String ::= NamedSignatureElement) =
     (\x::NamedSignatureElement -> s"anno_${makeIdName(x.elementName)}");
 
+  local updateAnno :: (String ::= Integer NamedSignatureElement) =
+    (\i::Integer x::NamedSignatureElement ->
+      s"annos[${toString(i)}] != null? annos[${toString(i)}] : anno_${makeIdName(x.elementName)}");
+
   local getChildNames :: (String ::= NamedSignatureElement) =
     (\x::NamedSignatureElement -> s"\"${x.elementName}\"");
 
@@ -127,6 +131,19 @@ ${contexts.contextInitTrans}
 ${namedSig.childDecls}
 
 ${contexts.contextMemberDeclTrans}
+
+    @Override
+    public final ${className} updateAnnos(final Object[] annos) {
+        assert !isUnique;
+        if (annos == null) return this;
+        assert annos.length == ${toString(length(namedSig.namedInputElements))};
+        return new ${className}(${implode(", ",
+            -- A node with updated annotations has the same origin as the original node.
+            (if wantsTracking then ["this.origin"] else []) ++
+            namedSig.contextRefElems ++
+            map(copyChild, namedSig.inputElements) ++
+            unzipWith(updateAnno, enumerate(namedSig.namedInputElements)))});
+    }
 
 	@Override
 	public boolean isChildDecorable(final int index) {
