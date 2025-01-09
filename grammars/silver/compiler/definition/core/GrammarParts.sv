@@ -55,15 +55,15 @@ top::Grammar ::=
 }
 
 abstract production consGrammar
-top::Grammar ::= h::Root  t::Grammar
+top::Grammar ::= h::File  t::Grammar
 {
   top.declaredName = if h.declaredName == t.declaredName then h.declaredName else top.grammarName;
 
-  production attribute rootErrors::[Message] with ++;
-  rootErrors := h.errors;
-  top.allFileErrors = (getParsedOriginLocation(h).fromJust.filename, rootErrors) :: t.allFileErrors;
+  production attribute fileErrors::[Message] with ++;
+  fileErrors := h.errors;
+  top.allFileErrors = (getParsedOriginLocation(h).fromJust.filename, fileErrors) :: t.allFileErrors;
 
-  rootErrors <- attachNote logicalLocationFromOrigin(h) on
+  fileErrors <- attachNote logicalLocationFromOrigin(h) on
     warnIfMultJarName(h.jarName, t.jarName)
   end;
 }

@@ -8,52 +8,52 @@ synthesized attribute genFiles :: [Pair<String String>] with ++;
  - Used for getting doc comments on AGDcls to emit.
  - Note that not every item really should be emitted, see doEmit.
  -}
-monoid attribute docs :: [CommentItem] occurs on Grammar, Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+monoid attribute docs :: [CommentItem] occurs on Grammar, File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 
 @@{-
  - Doc config is managed in both a per-file, and per-grammar way. Directives are either file-scope
  - or grammar-scope. A file-scoped directive for the same setting beats a grammar-scoped one. To do
  - this, directives flow up via @link[upDocConfig] from AGDcls to reach `grammarRootSpec` and
- - then flow back down via @link[downDocConfig]. However, when passing through `Root` the only
+ - then flow back down via @link[downDocConfig]. However, when passing through `File` the only
  - doc directives that flow up to the Grammar scope are those with .fileScope = true. Then when
  - flowing back down, those with .fileScope = false are re-added in front of grammar scope directives
- - in @link[downDocConfig] (and stored on the `Root` as @link[localDocConfig].) -}
+ - in @link[downDocConfig] (and stored on the `File` as @link[localDocConfig].) -}
 
-@{- Final doc config flowing back down, inside files (Roots) will include file scoped settings first. -}
-inherited attribute downDocConfig :: [DocConfigSetting] occurs on Grammar, Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+@{- Final doc config flowing back down, inside files (Files) will include file scoped settings first. -}
+inherited attribute downDocConfig :: [DocConfigSetting] occurs on Grammar, File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 
-@{- Doc config information flowing up. File scoped settings are stripped at the Root level. -}
-monoid attribute upDocConfig :: [DocConfigSetting] occurs on Grammar, Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+@{- Doc config information flowing up. File scoped settings are stripped at the File level. -}
+monoid attribute upDocConfig :: [DocConfigSetting] occurs on Grammar, File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 
-@{- Snapshot of @link[downDocConfig] stored on `Root`. -}
-synthesized attribute localDocConfig :: [DocConfigSetting] occurs on Root;
+@{- Snapshot of @link[downDocConfig] stored on `File`. -}
+synthesized attribute localDocConfig :: [DocConfigSetting] occurs on File;
 
-synthesized attribute undocumentedNamed :: [String] occurs on Root, Grammar;
-synthesized attribute documentedNamed :: [String] occurs on Root, Grammar;
+synthesized attribute undocumentedNamed :: [String] occurs on File, Grammar;
+synthesized attribute documentedNamed :: [String] occurs on File, Grammar;
 
 @{-
  - Declarations of documented AGDcls, flowing up. Used for linking and counting documented items.
  - Flows back down as @link[docEnv].
  -}
-monoid attribute docDcls :: [Pair<String DocDclInfo>] occurs on Grammar, Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+monoid attribute docDcls :: [Pair<String DocDclInfo>] occurs on Grammar, File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 
 @{- Environment of all documented AGDcls, flowing back down after being computed from @link[docDcls].  -}
 inherited attribute docEnv :: tm:Map<String DocDclInfo>;
-attribute docEnv occurs on Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+attribute docEnv occurs on File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 propagate docEnv on AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 
 @{- Errors arising from ill-formed doc comments.  -}
 monoid attribute docErrors :: [Message];
-attribute docErrors occurs on Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
-propagate docErrors on Root, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+attribute docErrors occurs on File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
+propagate docErrors on File, AGDcls, AGDcl, ClassBodyItem, InstanceBodyItem, ClassBody, InstanceBody, DataConstructors, DataConstructor;
 
 @{-
  - All file names in a grammar, paired with their documentation-related error messages.
  -}
 synthesized attribute allFileDocErrors::[(String, [Message])] occurs on Grammar;
 
-aspect production root
-top::Root ::= gdcl::GrammarDcl ms::ModuleStmts ims::ImportStmts ags::AGDcls
+aspect production fileRoot
+top::File ::= gdcl::GrammarDcl ms::ModuleStmts ims::ImportStmts ags::AGDcls
 {
   top.docs := ags.docs;
   top.localDocConfig = ags.downDocConfig;
@@ -115,7 +115,7 @@ top::Grammar ::=
 }
 
 aspect production consGrammar
-top::Grammar ::= c1::Root  c2::Grammar
+top::Grammar ::= c1::File  c2::Grammar
 {
   top.docs := c1.docs ++ c2.docs;
   top.upDocConfig := c1.upDocConfig ++ c2.upDocConfig;
