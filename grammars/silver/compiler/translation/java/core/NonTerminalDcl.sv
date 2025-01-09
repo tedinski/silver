@@ -66,6 +66,9 @@ ${implode("", map((.annoDeclElem), myAnnos))}
 		}
 	}
 
+    @Override
+    public abstract ${className} updateAnnos(final Object[] annos);
+
 	@Override
 	public final int getNumberOfSynAttrs() {
 		return num_syn_attrs;
