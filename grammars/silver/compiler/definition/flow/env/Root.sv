@@ -7,11 +7,11 @@ import silver:compiler:modification:collection;
 import silver:compiler:modification:copper;
 import silver:compiler:modification:concisefunctions;
 
-attribute flowDefs, refDefs, specDefs, flowEnv occurs on Root, AGDcls, AGDcl, Grammar;
-flowtype flowDefs {decorate} on Root, AGDcls, AGDcl, Grammar;
-flowtype refDefs {decorate} on Root, AGDcls, AGDcl, Grammar;
-flowtype specDefs {decorate} on Root, AGDcls, AGDcl, Grammar;
-propagate flowDefs, refDefs, specDefs, flowEnv on Root, AGDcls, AGDcl, Grammar;
+attribute flowDefs, refDefs, specDefs, flowEnv occurs on File, AGDcls, AGDcl, Grammar;
+flowtype flowDefs {decorate} on File, AGDcls, AGDcl, Grammar;
+flowtype refDefs {decorate} on File, AGDcls, AGDcl, Grammar;
+flowtype specDefs {decorate} on File, AGDcls, AGDcl, Grammar;
+propagate flowDefs, refDefs, specDefs, flowEnv on File, AGDcls, AGDcl, Grammar;
 
 aspect default production
 top::AGDcl ::=

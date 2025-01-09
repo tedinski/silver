@@ -5,7 +5,7 @@ monoid attribute typeRefLocs::[(Location, TypeDclInfo)];
 monoid attribute attributeRefLocs::[(Location, AttributeDclInfo)];
 
 attribute valueRefLocs, typeRefLocs, attributeRefLocs occurs on
-  RootSpec, Grammar, Root, NameList, AGDcls, AGDcl,
+  RootSpec, Grammar, File, NameList, AGDcls, AGDcl,
   ProductionSignature, FunctionSignature, AspectProductionSignature, AspectFunctionSignature, AspectDefaultProductionSignature,
   ConstraintList, Constraint, ProductionLHS, FunctionLHS, AspectProductionLHS, AspectFunctionLHS,
   ProductionRHS, AspectRHS, ProductionRHSElem, AspectRHSElem,
@@ -16,7 +16,7 @@ attribute valueRefLocs, typeRefLocs, attributeRefLocs occurs on
   PrimPatterns, PrimPattern, AttrNameList, ProdNameList;
 
 propagate valueRefLocs, typeRefLocs, attributeRefLocs on
-  RootSpec, Grammar, Root, NameList, AGDcls, AGDcl,
+  RootSpec, Grammar, File, NameList, AGDcls, AGDcl,
   ProductionSignature, FunctionSignature, AspectProductionSignature, AspectFunctionSignature, AspectDefaultProductionSignature,
   ConstraintList, Constraint, ProductionLHS, FunctionLHS, AspectProductionLHS, AspectFunctionLHS,
   ProductionRHS, AspectRHS, ProductionRHSElem, AspectRHSElem,

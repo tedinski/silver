@@ -36,9 +36,9 @@ monoid attribute initWeaving :: String;
  -}
 monoid attribute valueWeaving :: String;
 
-attribute genFiles,setupInh,initProd,initValues,postInit,initWeaving,valueWeaving occurs on Root, AGDcls, AGDcl, Grammar;
+attribute genFiles,setupInh,initProd,initValues,postInit,initWeaving,valueWeaving occurs on File, AGDcls, AGDcl, Grammar;
 
-propagate genFiles,setupInh,initProd,initValues,postInit,initWeaving,valueWeaving on Root, AGDcls, Grammar;
+propagate genFiles,setupInh,initProd,initValues,postInit,initWeaving,valueWeaving on File, AGDcls, Grammar;
 
 aspect default production
 top::AGDcl ::=

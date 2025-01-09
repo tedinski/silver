@@ -26,7 +26,7 @@ public class CopperParserNodeFactory extends NodeFactory<NParseResult> {
 
     @Override
     public AppTypeRep getType() {
-        return new AppTypeRep(new AppTypeRep(new AppTypeRep(new FunctionTypeRep(2, new String[] {}), new BaseTypeRep("String")), new BaseTypeRep("String")), new AppTypeRep(new BaseTypeRep("silver:core:ParseResult"), new BaseTypeRep("silver:compiler:definition:core:Root")));
+        return new AppTypeRep(new AppTypeRep(new AppTypeRep(new FunctionTypeRep(2, new String[] {}), new BaseTypeRep("String")), new BaseTypeRep("String")), new AppTypeRep(new BaseTypeRep("silver:core:ParseResult"), new BaseTypeRep("silver:compiler:definition:core:File")));
     }
 
     @Override
