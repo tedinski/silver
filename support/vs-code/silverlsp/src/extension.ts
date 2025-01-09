@@ -84,6 +84,8 @@ export function activate(context: vscode.ExtensionContext) {
 		client = new LanguageClient('silver-langserver', 'Language Support for Silver', serverOptions, clientOptions);
 
 		client.start();
+	} else {
+		vscode.window.showErrorMessage(`The JAVA_HOME environment variable must be set to use the Silver LSP extension.`);
 	}
 }
 
