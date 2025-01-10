@@ -117,6 +117,13 @@ top::AGDcl ::= at::QName attl::BracketedOptTypeExprs nt::QName nttl::BracketedOp
     then [errFromOrigin(at, "Attribute '" ++ at.name ++ "' already occurs on '" ++ nt.name ++ "'.")]
     else [];
 
+  -- Make sure that no two annotations with the same short name (but different full names) can be declared on the same nonterminal
+  local snat :: String = last(explode(":", at.name)); -- short name of annotation
+  top.errors <-
+    if at.lookupAttribute.dcl.isAnnotation && length(filter((.isAnnotation), getOccursDclBySN(snat, nt.lookupType.fullName, top.env))) > 1
+    then [errFromOrigin(at, "Annotation with the same short name '" ++ snat ++ "' already occurs on '" ++ nt.name ++ "'.")]
+    else [];
+
   top.errors <-
     if nt.lookupType.found && (!nt.lookupType.dcl.isType || !ntTypeScheme.typerep.isNonterminal)
     then [errFromOrigin(nt, nt.name ++ " is not a nonterminal. Attributes can only occur on nonterminals.")]
