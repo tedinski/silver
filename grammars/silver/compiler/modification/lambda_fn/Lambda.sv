@@ -57,12 +57,12 @@ top::Expr ::= params::LambdaRHS e::Expr
 tracked nonterminal LambdaRHS with 
   givenLambdaParamIndex, givenLambdaId, env, grammarName, flowEnv, 
   lambdaBoundVars, lambdaDefs, lexicalTypeVariables, lexicalTyVarKinds, 
-  inputElements, unparse, elementCount;
+  inputElements, unparse, elementCount, errors;
 
 tracked nonterminal LambdaRHSElem with 
   givenLambdaParamIndex, givenLambdaId, grammarName, deterministicCount, env, 
   flowEnv, lambdaBoundVars, lambdaDefs, unparse, lexicalTypeVariables, 
-  inputElements, lexicalTyVarKinds;
+  inputElements, lexicalTyVarKinds, errors;
 
 
 monoid attribute lambdaDefs::[Def];
@@ -80,7 +80,7 @@ flowtype lambdaBoundVars {} on LambdaRHS;
 flowtype lambdaBoundVars {deterministicCount} on LambdaRHSElem;
 
 propagate lambdaDefs, lambdaBoundVars on LambdaRHS;
-propagate flowEnv, env, grammarName, givenLambdaId, lexicalTyVarKinds on LambdaRHS, LambdaRHSElem;
+propagate flowEnv, env, grammarName, givenLambdaId, lexicalTyVarKinds, errors on LambdaRHS, LambdaRHSElem;
 propagate lexicalTypeVariables on LambdaRHS, LambdaRHSElem excluding lambdaRHSCons;
 
 
@@ -132,6 +132,7 @@ top::LambdaRHSElem ::= id::Name '::' t::TypeExpr
   top.inputElements = [namedSignatureElement(id.name, t.typerep, false)];
   
   top.unparse = id.unparse ++ "::" ++ t.unparse;
+
 }
 
 {--
