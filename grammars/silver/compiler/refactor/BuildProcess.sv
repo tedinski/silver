@@ -69,7 +69,7 @@ top::DriverAction ::= a::Decorated CmdArgs  specs::[Decorated RootSpec]
 fun refactorSpec IO<()> ::= r::Decorated RootSpec =
   do {
     eprintln("\t[" ++ r.declaredName ++ "]");
-    traverse_(\ item::(String, Root) ->
+    traverse_(\ item::(String, File) ->
       when_(!endsWith(".md", item.1),  -- TODO: Make this work with literate Silver files
         do {
           let fullPath::String = r.grammarSource ++ item.1;
@@ -80,11 +80,11 @@ fun refactorSpec IO<()> ::= r::Decorated RootSpec =
       r.transformedFiles);
   };
 
-monoid attribute transformedFiles::[(String, Root)] occurs on RootSpec, Grammar;
+monoid attribute transformedFiles::[(String, File)] occurs on RootSpec, Grammar;
 propagate transformedFiles on RootSpec, Grammar;
 
 aspect production consGrammar
-top::Grammar ::= h::Root  t::Grammar
+top::Grammar ::= h::File  t::Grammar
 {
   top.transformedFiles <- [(getParsedOriginLocation(h).fromJust.filename, h.transformed)];
 }

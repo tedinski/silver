@@ -1,7 +1,7 @@
 grammar silver:compiler:refactor;
 
-functor attribute transformed occurs on Root, AGDcls;
-propagate transformed on Root;
+functor attribute transformed occurs on File, AGDcls;
+propagate transformed on File;
 
 aspect transformed on AGDcls of
 | consAGDcls(h, t) -> consAGDcls(

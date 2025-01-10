@@ -1,9 +1,9 @@
 grammar silver:compiler:definition:core;
 
 {--
- - Root represents one textual file of Silver source.
+ - File represents one textual file of Silver source.
  -}
-tracked nonterminal Root with
+tracked nonterminal File with
   -- Global-level inherited attributes
   config, compiledGrammars,
   -- Grammar-level inherited attributes
@@ -13,16 +13,16 @@ tracked nonterminal Root with
   declaredName, unparse, errors, defs, occursDefs, moduleNames, importedDefs, importedOccursDefs,
   exportedGrammars, optionalGrammars, condBuild, jarName;
 
-flowtype Root = decorate {config, compiledGrammars, grammarName, env, globalImports, grammarDependencies, flowEnv};
+flowtype File = decorate {config, compiledGrammars, grammarName, env, globalImports, grammarDependencies, flowEnv};
 
 tracked nonterminal GrammarDcl with 
   declaredName, grammarName, unparse, errors;
 
-propagate errors on Root, GrammarDcl;
-propagate config, compiledGrammars, grammarName, globalImports, grammarDependencies, moduleNames on Root;
+propagate errors on File, GrammarDcl;
+propagate config, compiledGrammars, grammarName, globalImports, grammarDependencies, moduleNames on File;
 
-concrete production root
-top::Root ::= gdcl::GrammarDcl ms::ModuleStmts ims::ImportStmts ags::AGDcls
+concrete production fileRoot
+top::File ::= gdcl::GrammarDcl ms::ModuleStmts ims::ImportStmts ags::AGDcls
 {
   top.unparse = gdcl.unparse ++ "\n\n" ++ ms.unparse ++ "\n\n" ++ ims.unparse ++ "\n\n" ++ ags.unparse;
   top.declaredName = gdcl.declaredName;

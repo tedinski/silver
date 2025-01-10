@@ -4,10 +4,10 @@ grammar silver:compiler:analysis:uniqueness;
 monoid attribute sharedRefs::[(String, SharedRefSite)];
 
 attribute sharedRefs occurs on
-  Grammar, Root, AGDcls, AGDcl,
+  Grammar, File, AGDcls, AGDcl,
   ProductionBody, ProductionStmts, ProductionStmt;
 propagate sharedRefs on
-  Grammar, Root, AGDcls, AGDcl,
+  Grammar, File, AGDcls, AGDcl,
   ProductionBody, ProductionStmts, ProductionStmt;
 
 {--
