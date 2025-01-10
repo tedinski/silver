@@ -66,6 +66,9 @@ ${implode("", map((.annoDeclElem), myAnnos))}
 		}
 	}
 
+    @Override
+    public abstract ${className} updateAnnos(final Object[] annos);
+
 	@Override
 	public final int getNumberOfSynAttrs() {
 		return num_syn_attrs;
@@ -103,6 +106,10 @@ ${if quals.data then "" else s"""
 			  map(\ anno::NamedSignatureElement -> s"((${className})ref.getNode()).${anno.annoAccessorElem}", myAnnos)
 			)});
 			this.ref = ref;
+		}
+		@Override
+		public DecorationSiteWrapper updateAnnos(Object[] annos) {
+			throw new common.exceptions.SilverInternalError("Decoration site wrapper node should never have annotations updated!");
 		}
 
 		@Override

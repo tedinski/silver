@@ -21,6 +21,14 @@ public abstract class Node implements Decorable, Typed {
 	}
 
 	// Common manipulators of Node objects.
+
+	/**
+	 * Update the annotations on this node.
+	 * 
+	 * @param annos An array of new annotation values, or null for any annotations to be unchanged.
+	 * @return A node with the same children and the new annotation values.
+	 */
+	public abstract Node updateAnnos(final Object[] annos);
 	
 	/**
 	 * The normal way of decorating a node. 

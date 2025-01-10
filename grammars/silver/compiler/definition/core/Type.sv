@@ -31,6 +31,7 @@ top::Type ::= _
 aspect production nonterminalType
 top::Type ::= fn::String _ data::Boolean _
 {
+  top.applicationDispatcher = annoUpdateApplication;
   top.accessHandler = if data then dataAccessHandler else undecoratedAccessHandler;
 }
 

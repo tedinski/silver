@@ -262,6 +262,13 @@ fun namedargsTranslation String ::= e::Decorated AnnoAppExprs =
 fun namedargsTranslationNOReorder String ::= e::Decorated AnnoAppExprs =
   if null(e.exprs) then "null"
   else s"new Object[]{${implode(", ", map((.lazyTranslation), e.exprs))}}";
+fun namedargsTranslationOrNull String ::= e::Decorated AnnoAppExprs =
+  if null(e.exprs) then "null"
+  else s"new Object[]{${implode(", ", map(
+    compose(
+      mapOrElse("null", (.lazyTranslation), _),
+      lookup(_, zip(e.annoIndexSupplied, e.exprs))),
+    range(0, length(e.funcAnnotations))))}}";
 
 aspect production partialApplication
 top::Expr ::= @e::Expr @es::AppExprs @annos::AnnoAppExprs
@@ -306,6 +313,33 @@ top::Expr ::= @e::Expr @es::AppExprs @annos::AnnoAppExprs
     | baseExpr(qn) -> qn.name == last(explode(":", top.frame.fullName))
     | _ -> false
     end;
+}
+
+aspect production annoUpdatePositionalErrorApplication
+top::Expr ::= @e::Expr @es::AppExprs @annos::AnnoAppExprs
+{
+  top.translation = error("Internal compiler error: translation not defined in the presence of errors");
+  top.lazyTranslation = top.translation;
+}
+
+aspect production annoUpdateInvocation
+top::Expr ::= @e::Expr @es::AppExprs @annos::AnnoAppExprs
+{
+  top.translation = s"${e.translation}.updateAnnos(${namedargsTranslationOrNull(annos)})";
+  top.lazyTranslation = wrapThunk(top.translation, top.frame.lazyApplication);
+}
+
+aspect production annoUpdatePartialApplication
+top::Expr ::= @e::Expr @es::AppExprs @annos::AnnoAppExprs
+{
+  top.translation = s"new common.AnnoUpdateNodeFactory<${e.finalType.transType}>(" ++
+    e.translation ++ ", " ++
+    (if null(annos.annoIndexConverted) then "null"
+      else s"new int[]{${implode(", ", map(toString, annos.annoIndexConverted))}}") ++ ", " ++
+    (if null(annos.annoIndexSupplied) then "null"
+      else s"new int[]{${implode(", ", map(toString, annos.annoIndexSupplied))}}") ++ ", " ++
+    namedargsTranslationNOReorder(annos) ++ ")";
+  top.lazyTranslation = wrapThunk(top.translation, top.frame.lazyApplication);
 }
 
 aspect production errorAccessHandler
