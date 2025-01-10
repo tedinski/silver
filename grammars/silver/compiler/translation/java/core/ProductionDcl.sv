@@ -339,7 +339,7 @@ ${body.translation}
         public String getName(){ return "${fName}"; }
         public common.RTTIManager.Nonterminalton<${fnnt}> getNonterminalton(){ return ${fnnt}.nonterminalton; }
 
-        public String getTypeUnparse() { return "${escapeString(ns.unparse)}"; }
+        public String getTypeUnparse() { return "${escapeString(namedSig.typeScheme.typepp)}"; }
         public int getChildCount() { return ${toString(length(namedSig.inputElements))}; }
         public int getAnnoCount() { return ${toString(length(namedSig.namedInputElements))}; }
 
