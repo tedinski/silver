@@ -9,6 +9,15 @@ global doRes1::Maybe<Integer> = do {
 
 equalityTest(doRes1, just(2), Maybe<Integer>, silver_tests);
 
+global doRes1Untyped::Maybe<Integer> = do {
+  a <- just(1);
+  if a > 0
+    then pure(2)
+    else nothing();
+};
+
+equalityTest(doRes1Untyped, just(2), Maybe<Integer>, silver_tests);
+
 -- Test list
 global doRes2::[Integer] = do {
   a::Integer <- [1, 2, 3];
@@ -17,6 +26,21 @@ global doRes2::[Integer] = do {
 };
 
 equalityTest(foldr(\a::Integer b::Integer -> a + b, 0, doRes2), 90, Integer, silver_tests);
+
+global doRes2Untyped::[Integer] = do {
+  a <- [1, 2, 3];
+  b <- [4, 5, 6];
+  return a * b;
+};
+
+equalityTest(foldr(\a::Integer b::Integer -> a + b, 0, doRes2Untyped), 90, Integer, silver_tests);
+
+global letRes::[Integer] = do {
+  let x = 3;
+  return x;
+};
+
+equalityTest(letRes, [3], [Integer], silver_tests);
 
 -- Test State
 global doRes3::State<Integer Integer> = do {

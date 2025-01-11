@@ -43,7 +43,7 @@ MaybeT<IO RootSpec> ::=
 
         -- IO Step 4: Build the grammar, and say so
         lift(eprintln("Compiling " ++ grammarName ++ "\n\t[" ++ grammarLocation ++ "]\n\t[" ++ renderFileNames(files, 0) ++ "]"));
-        gramCompile::([Root], [ParseError]) <- lift(compileFiles(svParser, grammarLocation, files));
+        gramCompile::([File], [ParseError]) <- lift(compileFiles(svParser, grammarLocation, files));
 
         -- The old interface file contents, used to tell if we need to transitively re-translate
         let oldInterface::Maybe<InterfaceItems> =
@@ -62,7 +62,7 @@ MaybeT<IO RootSpec> ::=
     fromInterfaceOrSource);
 }
 
-fun foldRoot Grammar ::= l::[Root] = foldr(consGrammar, nilGrammar(), l);
+fun foldRoot Grammar ::= l::[File] = foldr(consGrammar, nilGrammar(), l);
 
 {--
  - Determined whether a file name should be considered a Silver source file.

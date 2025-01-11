@@ -2,7 +2,7 @@ grammar silver:compiler:composed:Default;
 
 import silver:compiler:host;
 
-parser svParse::Root {
+parser svParse::File {
   silver:compiler:host;
 }
 

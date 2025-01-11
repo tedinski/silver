@@ -180,6 +180,14 @@ fun occursOnHelp [OccursDclInfo] ::= i::[OccursDclInfo] fnat::String =
        then head(i) :: occursOnHelp(tail(i), fnat)
        else occursOnHelp(tail(i), fnat);
 
+fun getOccursDclBySN [OccursDclInfo] ::= snat::String fnnt::String e::Env = 
+  occursOnSNHelp(getAttrOccursOn(fnnt, e), snat);
+fun occursOnSNHelp [OccursDclInfo] ::= i::[OccursDclInfo] snat::String =
+  if null(i) then []
+  else if endsWith(":" ++ snat, head(i).attrOccurring) -- check if the full name of the attribute ends with :snat
+      then head(i) :: occursOnSNHelp(tail(i), snat)
+      else occursOnSNHelp(tail(i), snat);
+
 -- Get all the nonterminals that may be reached by translation attributes on a nonterminal.
 fun getTranslationAttrTargets [String] ::= seen::[String] ntty::Type e::Env =
   if contains(ntty.typeName, seen) then []

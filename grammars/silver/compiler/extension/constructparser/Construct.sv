@@ -11,7 +11,7 @@ terminal Translator_t 'translator' lexer classes {KEYWORD};
 terminal Using_t 'using' lexer classes {KEYWORD};
 
 concrete production construct_c
-top::Root ::= gdcl::GrammarDcl  mStmts::ModuleStmts  is::ImportStmts
+top::File ::= gdcl::GrammarDcl  mStmts::ModuleStmts  is::ImportStmts
   'construct' parserName::Name  'as' m::QName  'translator'  'using'  ms::ParserComponents
 {
   local agDcls :: AGDcls =
@@ -22,7 +22,7 @@ top::Root ::= gdcl::GrammarDcl  mStmts::ModuleStmts  is::ImportStmts
 
   local prsr :: AGDcl =
     parserDcl('parser', name("extendedParser"), '::',
-      nominalTypeExpr(qNameTypeId(terminal(IdUpper_t, "Root"))),
+      nominalTypeExpr(qNameTypeId(terminal(IdUpper_t, "File"))),
       '{',
       consParserComponent(
         parserComponent(moduleName(@m),
@@ -60,6 +60,6 @@ top::Root ::= gdcl::GrammarDcl  mStmts::ModuleStmts  is::ImportStmts
       importStmt('import', moduleAll(^m), ';'),
       @is);
 
-  forwards to root(@gdcl, @mStmts, @importStmts, @agDcls);
+  forwards to fileRoot(@gdcl, @mStmts, @importStmts, @agDcls);
 }
 

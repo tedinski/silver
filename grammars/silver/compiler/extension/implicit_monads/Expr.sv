@@ -322,6 +322,39 @@ top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
   top.monadicNames = forwardParent.monadicNames;
 }
 
+aspect production annoUpdatePositionalErrorApplication
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.merrors := forwardParent.merrors;
+  top.mUpSubst = forwardParent.mUpSubst;
+  top.mtyperep = forwardParent.mtyperep;
+  top.monadRewritten = forwardParent.monadRewritten;
+
+  top.monadicNames = forwardParent.monadicNames;
+}
+
+aspect production annoUpdateInvocation
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.merrors := forwardParent.merrors;
+  top.mUpSubst = forwardParent.mUpSubst;
+  top.mtyperep = forwardParent.mtyperep;
+  top.monadRewritten = forwardParent.monadRewritten;
+
+  top.monadicNames = forwardParent.monadicNames;
+}
+
+aspect production annoUpdatePartialApplication
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.merrors := forwardParent.merrors;
+  top.mUpSubst = forwardParent.mUpSubst;
+  top.mtyperep = forwardParent.mtyperep;
+  top.monadRewritten = forwardParent.monadRewritten;
+
+  top.monadicNames = forwardParent.monadicNames;
+}
+
 --build the lambda to apply to all the original arguments plus the function
 function buildMonadApplicationLambda
 Expr ::= realtys::[Type] monadTysLocs::[Pair<Type Integer>] monadAnns::[(Type, QName, Boolean)]
