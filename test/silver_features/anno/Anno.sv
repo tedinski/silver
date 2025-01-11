@@ -119,6 +119,8 @@ nonterminal AnnoNT2 with anno1, anno2;
 annotation anno1 :: Integer;
 annotation anno2 :: String;
 
+derive Eq on AnnoNT2;
+
 abstract production annoNT2
 top::AnnoNT2 ::=
 {
@@ -158,4 +160,47 @@ equalityTest(
   end,
   5, Integer, silver_tests);
 
+equalityTest(
+  annoNT2a(anno1=2),
+  annoNT2(anno1=2, anno2="2"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno2="def"),
+  annoNT2(anno1=1, anno2="def"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno1=3, anno2="def"),
+  annoNT2(anno1=3, anno2="def"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno2="def", anno1=3),
+  annoNT2(anno1=3, anno2="def"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno1=_)(2),
+  annoNT2(anno1=2, anno2="2"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno2=_)("def"),
+  annoNT2(anno1=1, anno2="def"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno1=4, anno2=_)("xyz"),
+  annoNT2(anno1=4, anno2="xyz"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno2=_, anno1=4)("xyz"),
+  annoNT2(anno1=4, anno2="xyz"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno2=_, anno1=_)("xyz", 42),
+  annoNT2(anno1=42, anno2="xyz"),
+  AnnoNT2, silver_tests);
+equalityTest(
+  annoNT2a(anno1=_, anno2=_)(42, "xyz"),
+  annoNT2(anno1=42, anno2="xyz"),
+  AnnoNT2, silver_tests);
 
+wrongCode "Unexpected positional arguments for annotation update of nonterminal silver_features:anno:AnnoNT2" {
+  global annoUpdatePosBad::AnnoNT2 = annoNT2a(7, anno2="8");
+}

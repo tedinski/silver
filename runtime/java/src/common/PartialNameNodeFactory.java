@@ -33,7 +33,6 @@ public class PartialNameNodeFactory<T> extends NodeFactory<T> {
 	 * 3. Leaving some named parameters alone.
 	 * 
 	 * @param ref  The NodeFactory we're transforming
-	 * @param numOrderedParams  The length of the ordered parameter list for 'ref'.
 	 * @param iConvertedToOrdered  An unordered int list, specifying the indices of named parameters
 	 *          that should be tacked onto the end of the ordered parameter list.
 	 * @param iSuppliedHere  The ORDERED int list of indicies of named paramters we're filling in now.

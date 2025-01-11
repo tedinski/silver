@@ -295,6 +295,36 @@ top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
   es.dispatchFlowDeps = top.dispatchFlowDeps ++ e.flowDeps;
 }
 
+aspect production annoUpdatePositionalErrorApplication
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  es.decSiteVertexInfo = nothing();
+  es.alwaysDecorated = false;
+  es.appProd = nothing();
+  es.appIndexOffset = 0;
+  es.dispatchFlowDeps = [];
+}
+
+aspect production annoUpdateInvocation
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  es.decSiteVertexInfo = nothing();
+  es.alwaysDecorated = false;
+  es.appProd = nothing();
+  es.appIndexOffset = 0;
+  es.dispatchFlowDeps = [];
+}
+
+aspect production annoUpdatePartialApplication
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  es.decSiteVertexInfo = nothing();
+  es.alwaysDecorated = false;
+  es.appProd = nothing();
+  es.appIndexOffset = 0;
+  es.dispatchFlowDeps = [];
+}
+
 aspect production annoExpr
 top::AnnoExpr ::= qn::QName '=' e::AppExpr
 {

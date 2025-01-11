@@ -47,3 +47,13 @@ function failsLambdaType
     return (\ f::LambdaType -> case f of lambdaType() -> "str" end);
 }
 -- End Issue #209
+
+-----------------
+-- See Issue #825
+
+
+wrongCode
+  "Undeclared type 'SomeUndefinedType'"
+  {global errLambda::(String ::= Integer) = \x::SomeUndefinedType -> "s";}
+
+-- End Issue #825

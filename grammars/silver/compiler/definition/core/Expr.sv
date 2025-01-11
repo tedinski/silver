@@ -299,17 +299,27 @@ top::Expr ::= e::Expr '(' es::AppExprs ',' anns::AnnoAppExprs ')'
   es.appExprTypereps = reverse(correctNumTypes);
   es.appExprApplied = e.unparse;
   anns.appExprApplied = e.unparse;
-  anns.remainingFuncAnnotations = t.namedTypes;
+  anns.remainingFuncAnnotations =
+    if t.isNonterminal
+    then map(
+      \ e::NamedSignatureElement -> (e.elementShortName, e.typerep),
+      annotationsForNonterminal(^t, top.env))
+    else t.namedTypes;
   anns.funcAnnotations = anns.remainingFuncAnnotations;
   
   top.errors <- 
     if !t.isApplicable
     then []
     else if length(t.inputTypes) > es.appExprSize
-    then [errFromOrigin(top, "Too few arguments provided to function '" ++ e.unparse ++ "'")]
+    then [errFromOrigin(es, "Too few arguments provided to function '" ++ e.unparse ++ "'")]
     else if length(t.inputTypes) < es.appExprSize && case t.outputType of dispatchType(_) -> false | _ -> true end
-    then [errFromOrigin(top, "Too many arguments provided to function '" ++ e.unparse ++ "'")]
+    then [errFromOrigin(es, "Too many arguments provided to function '" ++ e.unparse ++ "'")]
     else [];
+
+  top.errors <-
+    if t.isNonterminal || null(anns.missingAnnotations) then []
+    else [errFromOrigin(anns, "Missing named parameters for function '" ++ e.unparse ++ "': "
+      ++ implode(", ", map(fst, anns.missingAnnotations)))];
 
   -- TODO: You know, since the rule is we can't access .typerep without "first" supplying
   -- .downSubst, perhaps we should just... report .typerep after substitution in the first place!
@@ -421,6 +431,51 @@ top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
   top.unparse = e.unparse ++ "(" ++ es.unparse ++ "," ++ anns.unparse ++ ")";
 
   top.typerep = performSubstitution(e.typerep, e.upSubst).outputType;
+}
+
+abstract production annoUpdateApplication implements Application
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.unparse = e.unparse ++ "(" ++ es.unparse ++ "," ++ anns.unparse ++ ")";
+
+  local prod::Application =
+    if es.appExprSize > 0
+    then annoUpdatePositionalErrorApplication
+    else if anns.isPartial
+    then annoUpdatePartialApplication
+    else annoUpdateInvocation;
+
+  forwards to prod(e, es, anns);
+}
+
+abstract production annoUpdatePositionalErrorApplication implements Application
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.unparse = e.unparse ++ "(" ++ es.unparse ++ "," ++ anns.unparse ++ ")";
+
+  top.errors <-
+    [errFromOrigin(top, s"Unexpected positional arguments for annotation update of nonterminal ${prettyType(e.finalType)}.")];
+
+  top.typerep = e.typerep;
+}
+
+abstract production annoUpdateInvocation implements Application
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.unparse = e.unparse ++ "(" ++ es.unparse ++ "," ++ anns.unparse ++ ")";
+
+  top.typerep = e.typerep;
+}
+
+abstract production annoUpdatePartialApplication implements Application
+top::Expr ::= @e::Expr @es::AppExprs @anns::AnnoAppExprs
+{
+  top.unparse = e.unparse ++ "(" ++ es.unparse ++ "," ++ anns.unparse ++ ")";
+
+  top.typerep =
+    appTypes(
+      functionType(length(anns.partialAnnoTypereps), []),
+      anns.partialAnnoTypereps ++ [e.typerep]);
 }
 
 concrete production noteAttachment
@@ -1206,10 +1261,6 @@ top::AnnoAppExprs ::= e::AnnoExpr
 
   top.isPartial = e.isPartial;
   top.appExprSize = 1;
-  top.errors <-
-    if null(top.missingAnnotations) then []
-    else [errFromOrigin(top, "Missing named parameters for function '" ++ top.appExprApplied ++ "': "
-      ++ implode(", ", map(fst, top.missingAnnotations)))];
 
   e.remainingFuncAnnotations = top.remainingFuncAnnotations;
   top.missingAnnotations = e.missingAnnotations;
@@ -1226,10 +1277,6 @@ top::AnnoAppExprs ::=
 
   top.isPartial = false;
   top.appExprSize = 0;
-  top.errors <-
-    if null(top.missingAnnotations) then []
-    else [errFromOrigin(top, "Missing named parameters for function '" ++ top.appExprApplied ++ "': "
-      ++ implode(", ", map(fst, top.missingAnnotations)))];
 
   top.missingAnnotations = top.remainingFuncAnnotations;
   
