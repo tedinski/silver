@@ -303,6 +303,7 @@ partial strategy attribute resolveDecSiteStep =
   elimCycleDecSiteStep <+ lookupDecSiteStep <+ reduceDecSiteStep <+
   -- Short-circuit alternatives to potentially avoid building the entire tree
   altDec(resolveDecSiteStep, id) <+
+  -- TODO: above potentially being retried after failure
   some(resolveDecSiteStep)
   occurs on DecSiteTree;
 
@@ -318,7 +319,10 @@ partial strategy attribute cleanupDecSiteStep =
   someTopDown(reduceDecSiteStep <+ elimRedundantDecSiteStep)
   occurs on DecSiteTree;
 
-strategy attribute resolveDecSite = repeat(resolveDecSiteStep) <* repeat(cleanupDecSiteStep)
+strategy attribute resolveDecSite = repeat(
+  -- TODO: workaround to prevent something from being inlined in a way that causes extra recomputation.
+  rule on DecSiteTree of d -> ^d end <*
+  resolveDecSiteStep) <* repeat(cleanupDecSiteStep)
   occurs on DecSiteTree;
 
 propagate
@@ -344,7 +348,8 @@ DecSiteTree ::= attrName::String d::DecSiteTree prodGraphs::EnvTree<ProductionGr
   d.productionFlowGraphs = prodGraphs;
   d.flowEnv = flowEnv;
   d.seenProdVertexAttrs = set:empty();
-  d.maxDepth = 10;
+  d.maxDepth = 20;
+  --return unsafeTracePrint(d.resolveDecSite, s"====== resolveDecSiteInhEq for ${attrName} on ${d.dbgPP} ======\n\n");
   return d.resolveDecSite;
 }
 
@@ -374,7 +379,7 @@ DecSiteTree ::=
  - @param attrName The name of the inherited attribute.
  - @param flowEnv The flow environment.
  - @param realEnv The regular environment.
- - @return true if the vertex is guranteed to be supplied with the attribute.
+ - @return true if the vertex is guaranteed to be supplied with the attribute.
  -}
 fun decSiteHasInhEq
 Boolean ::=

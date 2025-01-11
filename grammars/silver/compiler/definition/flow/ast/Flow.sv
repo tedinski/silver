@@ -342,7 +342,7 @@ top::FlowDef ::= prod::String  sigName::String  transAttr::String  attr::String 
 abstract production localTransInhEq
 top::FlowDef ::= prod::String  fName::String  transAttr::String  attr::String  deps::[FlowVertex]
 {
-  top.inhTreeContribs := [(crossnames(prod, crossnames(fName, s"${transAttr}.${attr}")), top)];
+  top.localInhTreeContribs := [(crossnames(prod, crossnames(fName, s"${transAttr}.${attr}")), top)];
   top.prodGraphContribs := [(prod, top)];
   top.flowEdges = map(pair(fst=localSynVertex(fName, s"${transAttr}.${attr}"), snd=_), deps);
 }

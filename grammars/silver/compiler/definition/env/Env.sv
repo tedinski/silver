@@ -188,6 +188,20 @@ fun occursOnSNHelp [OccursDclInfo] ::= i::[OccursDclInfo] snat::String =
       then head(i) :: occursOnSNHelp(tail(i), snat)
       else occursOnSNHelp(tail(i), snat);
 
+-- Get all the nonterminals that may be reached by translation attributes on a nonterminal.
+fun getTranslationAttrTargets [String] ::= seen::[String] ntty::Type e::Env =
+  if contains(ntty.typeName, seen) then []
+  else ntty.typeName :: flatMap(
+    \ o::OccursDclInfo ->
+      getTranslationAttrTargets(ntty.typeName :: seen, determineAttributeType(o, ntty), e),
+    filter(
+      \ o::OccursDclInfo ->
+        case getAttrDcl(o.attrOccurring, e) of
+        | at :: _ -> at.isTranslation
+        | _ -> false
+        end,
+      getAttrOccursOn(ntty.typeName, e)));
+
 -- Determines whether a type is automatically promoted to a decorated type
 -- and whether a type may be supplied with inherited attributes.
 -- Used by expression (id refs), decorate type checking, and translations.
