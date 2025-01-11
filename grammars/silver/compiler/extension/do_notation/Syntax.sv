@@ -285,7 +285,7 @@ top::DoBinding ::= n::Name  '<-' e::Expr ';'
   nondecorated local cont :: Expr =
     lambdap(
       lambdaRHSCons(
-        lambdaRHSElemIdTy(^n, terminal(ColonColon_t, "::"), typerepTypeExpr(freshType())),
+        lambdaRHSElemId(^n),
         lambdaRHSNil()),
       top.transformIn);
   top.transform = mkStrFunctionInvocation("silver:core:bind", [^e, cont]);
