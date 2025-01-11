@@ -180,6 +180,14 @@ fun occursOnHelp [OccursDclInfo] ::= i::[OccursDclInfo] fnat::String =
        then head(i) :: occursOnHelp(tail(i), fnat)
        else occursOnHelp(tail(i), fnat);
 
+fun getOccursDclBySN [OccursDclInfo] ::= snat::String fnnt::String e::Env = 
+  occursOnSNHelp(getAttrOccursOn(fnnt, e), snat);
+fun occursOnSNHelp [OccursDclInfo] ::= i::[OccursDclInfo] snat::String =
+  if null(i) then []
+  else if endsWith(":" ++ snat, head(i).attrOccurring) -- check if the full name of the attribute ends with :snat
+      then head(i) :: occursOnSNHelp(tail(i), snat)
+      else occursOnSNHelp(tail(i), snat);
+
 -- Determines whether a type is automatically promoted to a decorated type
 -- and whether a type may be supplied with inherited attributes.
 -- Used by expression (id refs), decorate type checking, and translations.
