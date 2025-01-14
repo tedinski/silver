@@ -248,6 +248,17 @@ String ::=
 }
 
 }
+-- to test the branch in concrete production selector: accessIndex > len || accessIndex < 1
+-- that the index is "out of bounds"
+wrongCode "Undeclared value 'notdefined'" {
+
+function fun
+String ::=
+{
+  return notdefined.2;
+}
+
+}
 
 -- polymorphism
 function thirdOfFive

@@ -62,7 +62,7 @@ top::Expr ::= tuple::Expr '.' a::IntConst
   local len::Integer = length(ty.tupleElems);
   
   forwards to if (accessIndex > len || accessIndex < 1) then
-      errorExpr([errFromOrigin(top, "Invalid tuple selector index.")])
+      errorExpr(tuple.errors ++ [errFromOrigin(top, "Invalid tuple selector index.")])
     -- @ prevents exponential type checking
     else select(@tuple, 1, accessIndex, len);
 
