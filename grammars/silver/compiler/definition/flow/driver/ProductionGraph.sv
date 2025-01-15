@@ -98,13 +98,6 @@ Maybe<ProductionGraph> ::=
   | nothing() -> graph.cullSuspect(ntEnv)
   end;
 
--- construct a production graph for each production
-fun computeAllProductionGraphs
-[ProductionGraph] ::= prods::[ValueDclInfo]  flowEnv::FlowEnv  realEnv::Env =
-  if null(prods) then []
-  else constructProductionGraph(head(prods), flowEnv, realEnv) ::
-    computeAllProductionGraphs(tail(prods), flowEnv, realEnv);
-
 
 --------------------------------------------------------------------------------
 -- Below, we have various means of constructing a production graph.
@@ -312,7 +305,7 @@ ProductionGraph ::= defs::[FlowDef]  realEnv::Env  prodEnv::EnvTree<ProductionGr
  - This is used in checking, and also to handle dependencies of default equations during inference.
  -}
 function constructDefaultProductionGraph
-ProductionGraph ::= nt::NtName  flowEnv::FlowEnv  realEnv::Env
+[ProductionGraph] ::= nt::NtName  flowEnv::FlowEnv  realEnv::Env
 {
   -- The stand-in "full name" of this default production
   local prod :: String = nt ++ ":default";
@@ -343,11 +336,12 @@ ProductionGraph ::= nt::NtName  flowEnv::FlowEnv  realEnv::Env
   local flowTypeVertexes :: [FlowVertex] =
     filter(\x::FlowVertex -> !contains(x.flowTypeName, flowTypeSpecs), flowTypeVertexesOverall);
 
-  return
+  local g :: ProductionGraph =
     productionGraph(prod, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
+  
+  -- Optimization: omit the default graph if there are no default equations for the NT.
+  return if null(defs) then [] else [g];
 }
-
-
 
 {--
  - Constructs "phantom graphs" to enforce 'ft(syn) >= ft(fwd)'.
@@ -358,7 +352,7 @@ ProductionGraph ::= nt::NtName  flowEnv::FlowEnv  realEnv::Env
  - @return A fixed up graph.
  -}
 function constructPhantomProductionGraph
-ProductionGraph ::= nt::String  flowEnv::FlowEnv  realEnv::Env
+[ProductionGraph] ::= nt::String  flowEnv::FlowEnv  realEnv::Env
 {
   -- Just synthesized attributes.
   local syns :: [String] = getSynAttrsOn(nt, realEnv);
@@ -378,7 +372,11 @@ ProductionGraph ::= nt::String  flowEnv::FlowEnv  realEnv::Env
   local initialGraph :: g:Graph<FlowVertex> = createFlowGraph(phantomEdges);
   local suspectEdges :: [(FlowVertex, FlowVertex)] = [];
 
-  return productionGraph("Phantom for " ++ nt, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
+  local g::ProductionGraph =
+    productionGraph("Phantom for " ++ nt, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
+  
+  -- Optimization: omit the phantom graph if there are no extension syns for the NT.
+  return if null(extSyns) then [] else [g];
 }
 
 {--
