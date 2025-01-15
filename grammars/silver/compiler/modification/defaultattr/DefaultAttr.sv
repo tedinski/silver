@@ -26,13 +26,6 @@ top::AGDcl ::= 'aspect' 'default' 'production' ns::AspectDefaultProductionSignat
   
   local sigDefs :: [Def] = addNewLexicalTyVars(top.grammarName, ns.lexicalTyVarKinds, ns.lexicalTypeVariables);
 
-  -- oh no again!
-  local myFlow :: EnvTree<FlowType> = head(searchEnvTree(top.grammarName, top.compiledGrammars)).grammarFlowTypes;
-  local myProds :: EnvTree<ProductionGraph> = head(searchEnvTree(top.grammarName, top.compiledGrammars)).productionFlowGraphs;
-
-  local myFlowGraph :: ProductionGraph = 
-    constructDefaultProductionGraph(ns.namedSignature, body.flowDefs, top.env, myProds, myFlow);
-
   ns.env = newScopeEnv(sigDefs, top.env);
 
   body.env = newScopeEnv(ns.defs, ns.env);
@@ -55,7 +48,7 @@ top::AspectDefaultProductionSignature ::= lhs::Name '::' te::TypeExpr '::='
   top.unparse = lhs.unparse ++ "::" ++ te.unparse ++ " ::=";
   top.defs := [defaultLhsDef(top.grammarName, lhs.nameLoc, lhs.name, te.typerep)];
   top.namedSignature =
-    namedSignature(top.grammarName ++ ":default" ++ te.typerep.typeName,
+    namedSignature(top.grammarName ++ ":" ++ te.typerep.typeName ++ ":default",
       nilContext(), nilNamedSignatureElement(),
       namedSignatureElement(lhs.name, te.typerep, false),
       foldNamedSignatureElements(annotationsForNonterminal(te.typerep, top.env)));

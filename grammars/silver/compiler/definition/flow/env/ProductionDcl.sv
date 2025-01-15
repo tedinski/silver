@@ -85,3 +85,19 @@ top::AspectRHSElem ::= '@' id::Name '::' t::TypeExpr
 {
   propagate flowEnv;
 }
+
+aspect production aspectDefaultProduction
+top::AGDcl ::= 'aspect' 'default' 'production' ns::AspectDefaultProductionSignature body::ProductionBody
+{
+  local myFlow :: EnvTree<FlowType> = head(searchEnvTree(top.grammarName, top.compiledGrammars)).grammarFlowTypes;
+  local myGraphs :: EnvTree<ProductionGraph> = head(searchEnvTree(top.grammarName, top.compiledGrammars)).productionFlowGraphs;
+
+  {-- Used by core to send down with .frame -}
+  production myFlowGraph :: ProductionGraph =
+    case searchEnvTree(ns.namedSignature.fullName, myGraphs) of
+    | g :: _ -> g
+    -- In case we didn't find the flow graph (the nonterminal doesn't exist?)
+    -- build an anonymous flow graph to use instead as a "best effort".
+    | [] -> constructAnonymousGraph(body.flowDefs, top.env, myGraphs, myFlow)
+    end;
+}

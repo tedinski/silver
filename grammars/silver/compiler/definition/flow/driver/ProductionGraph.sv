@@ -108,10 +108,12 @@ fun computeAllProductionGraphs
 
 --------------------------------------------------------------------------------
 -- Below, we have various means of constructing a production graph.
--- Three types are used as part of inference:
+-- Four types are used as part of inference:
 --  1. `constructProductionGraph` builds a graph for a normal production.
---  2. `constructPhantomProductionGraph` builds a "phantom graph" to guide inference.
---  3. `constructDispatchGraph` builds a graph for a dispatch signature,
+--  2. `constructDefaultProductionGraph` builds a graph for default equations for a nonterminal.
+--       (key: like phantom, LHS is stitch point, to make dependencies clear.)
+--  3. `constructPhantomProductionGraph` builds a "phantom graph" to guide inference.
+--  4. `constructDispatchGraph` builds a graph for a dispatch signature,
 --     to make projection stitch points work for them.
 --
 -- There are more types of "production" graphs, used NOT for inference, but
@@ -120,8 +122,6 @@ fun computeAllProductionGraphs
 --       (the key here: `aspect function` contributions `<-` needs to be handled.)
 --  2. `constructAnonymousGraph` builds a graph for a global expression. (also action blocks)
 --       (key: decorate/patterns create stitch points and things that need to be handled.)
---  3. `constructDefaultProductionGraph` builds a graph used locally in a default production.
---       (key: like phantom, LHS is stitch point, to make dependencies clear.)
 --
 -- This latter type should always call `updateGraph` to fill in all edges after construction.
 --------------------------------------------------------------------------------
@@ -307,23 +307,26 @@ ProductionGraph ::= defs::[FlowDef]  realEnv::Env  prodEnv::EnvTree<ProductionGr
 }
 
 {--
- - An graph for checking dependencies in default equations.
+ - A graph for dependencies in default equations.
  -
- - NOTE: Not used as part of inference. Instead, only used as part of error checking.
- -
+ - This is used in checking, and also to handle dependencies of default equations during inference.
  -}
 function constructDefaultProductionGraph
-ProductionGraph ::= ns::NamedSignature  defs::[FlowDef]  realEnv::Env  prodEnv::EnvTree<ProductionGraph>  ntEnv::EnvTree<FlowType>
+ProductionGraph ::= nt::NtName  flowEnv::FlowEnv  realEnv::Env
 {
-  local prod :: String = ns.fullName;
-  local nt :: NtName = ns.outputElement.typerep.typeName;
+  -- The stand-in "full name" of this default production
+  local prod :: String = nt ++ ":default";
+  -- The flow defs for this default production
+  local defs :: [FlowDef] = getGraphContribsFor(prod, flowEnv);
+  -- Just synthesized attributes.
+  local syns :: [String] = getSynAttrsOn(nt, realEnv);
   
   local normalEdges :: [(FlowVertex, FlowVertex)] =
     flatMap((.flowEdges), defs);
   
   -- suspectEdges should always be empty! (No "aspects" where they could arise.)
   local suspectEdges :: [(FlowVertex, FlowVertex)] = [];
-    
+
   local initialGraph :: g:Graph<FlowVertex> =
     createFlowGraph(normalEdges);
 
@@ -334,12 +337,14 @@ ProductionGraph ::= ns::NamedSignature  defs::[FlowDef]  realEnv::Env  prodEnv::
     localStitchPoints(realEnv, error("default production shouldn't have a forwarding equation?"), defs) ++
     patternStitchPoints(realEnv, defs);
 
-  local flowTypeVertexes :: [FlowVertex] = []; -- Not used as part of inference.
+  local flowTypeVertexesOverall :: [FlowVertex] = map(lhsSynVertex, syns);
+  local flowTypeSpecs :: [String] = getSpecifiedSynsForNt(nt, flowEnv);
+  
+  local flowTypeVertexes :: [FlowVertex] =
+    filter(\x::FlowVertex -> !contains(x.flowTypeName, flowTypeSpecs), flowTypeVertexesOverall);
 
-  local g :: ProductionGraph =
+  return
     productionGraph(prod, nt, flowTypeVertexes, initialGraph, suspectEdges, stitchPoints).transitiveClosure;
-
-  return fromMaybe(g, updateGraph(g, prodEnv, ntEnv));
 }
 
 
@@ -444,7 +449,7 @@ fun allFwdProdAttrs [String] ::= d::[FlowDef] =
   | _ :: rest -> allFwdProdAttrs(rest)
   end;
 {--
- - Introduces default equations deps. Realistically, should be empty, always.
+ - Introduces default equations deps.
  -}
 fun addDefEqs
 [(FlowVertex, FlowVertex)] ::= prod::ProdName nt::NtName syns::[String] flowEnv :: FlowEnv =

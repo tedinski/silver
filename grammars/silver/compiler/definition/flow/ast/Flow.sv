@@ -187,7 +187,7 @@ abstract production defaultSynEq
 top::FlowDef ::= nt::String  attr::String  deps::[FlowVertex]
 {
   top.defTreeContribs := [(crossnames(nt, attr), top)];
-  top.prodGraphContribs := []; -- defaults don't show up in the prod graph!!
+  top.prodGraphContribs := [(nt ++ ":default", top)];
   top.flowEdges = map(pair(fst=lhsSynVertex(attr), snd=_), deps); -- but their edges WILL end up added to graphs in fixup-phase!!
 }
 
