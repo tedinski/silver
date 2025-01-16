@@ -14,6 +14,8 @@ melt.trynode('silver') {
 
     checkout scm
 
+    sh "git fetch --unshallow --tags"
+
     // Bootstrap logic to obtain jars
     if (params.OVERRIDE_JARS != 'no') {
       def source = params.OVERRIDE_JARS
