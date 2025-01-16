@@ -6,7 +6,7 @@
 set -euo pipefail
 
 export SILVER_HOME=$PWD
-JVM_ARGS=(-Xss20M -Xmx6500M -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --include-jar ../jars/CopperCompiler.jar --include-jar ../jars/commonmark-0.17.1.jar --relative-jar "$@")
+JVM_ARGS=(-Xss20M -Xmx6500M -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --include-jar ../jars/CopperCompiler.jar --include-jar ../jars/commonmark-0.17.1.jar --relative-jar "$@" --silver-version `git describe --tags`)
 export GRAMMAR_PATH="../grammars"
 export ANT_OPTS=-Xss10M
 
