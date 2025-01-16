@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.net.URI;
+import java.util.jar.JarInputStream;
+import java.util.jar.Attributes.Name;
 
 import common.exceptions.*;
 import common.javainterop.ConsCellCollection;
@@ -504,6 +506,16 @@ public final class Util {
 		File home = new File(jarLocation).getParentFile().getParentFile();
 		return new StringCatter(home.getPath());
 	}
+
+	public static StringCatter getSilverVersion() {
+		String path = determineSilverHomePath(Util.class).toString()+"/jars/silver.compiler.composed.Default.jar";
+        try {
+            JarInputStream file = new JarInputStream(new FileInputStream(path));
+            return new StringCatter(file.getManifest().getMainAttributes().getValue(Name.IMPLEMENTATION_VERSION));
+        } catch (Throwable t) {
+            throw new RuntimeException("Failed to get Silver version.", t);
+        }
+    }
 	
 	public static ConsCell bitSetToList(BitSet b) {
 		ConsCell result = ConsCell.nil;

@@ -54,7 +54,7 @@ fun computeEnv IOErrorable<(Decorated CmdArgs, BuildEnv)> ::= args::[String] =
     -- line decide to go do, but currently it's hard to re-use code if we do that.
     if a.displayVersion then
       throwRunError(127, -- error code so 'ant' isnt run
-        "Silver Version 0.4.5-dev\n" ++
+        "Silver Version " ++ getSilverVersion() ++ "\n" ++
         "SILVER_HOME = " ++ benv.silverHome ++ "\n" ++
         "SILVER_GEN = " ++ benv.silverGen ++ "\n" ++
         "GRAMMAR_PATH:\n" ++ implode("\n", benv.grammarPath))
@@ -184,3 +184,11 @@ data RunError = runError
 type IOErrorable<a> = EitherT<RunError IO a>;
 
 fun throwRunError IOErrorable<a> ::= c::Integer m::String = throwError(runError(code=c, errMsg=m));
+
+function getSilverVersion
+String ::=
+{
+  return error("NYI");
+} foreign {
+  "java" : return "common.Util.getSilverVersion()";
+}

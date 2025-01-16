@@ -14,6 +14,7 @@ synthesized attribute relativeJar :: Boolean occurs on CmdArgs;
 synthesized attribute includeRTJars :: [String] occurs on CmdArgs;
 -- TODO: Should this be a Maybe?
 synthesized attribute buildXmlLocation :: [String] occurs on CmdArgs;
+synthesized attribute silverVersion :: String occurs on CmdArgs;
 
 aspect production endCmdArgs
 top::CmdArgs ::= _
@@ -23,6 +24,7 @@ top::CmdArgs ::= _
   top.relativeJar = false;
   top.includeRTJars = [];
   top.buildXmlLocation = [];
+  top.silverVersion = "";
 }
 abstract production dontTranslateFlag
 top::CmdArgs ::= rest::CmdArgs
@@ -54,6 +56,12 @@ top::CmdArgs ::= s::String rest::CmdArgs
   top.buildXmlLocation = s :: forward.buildXmlLocation;
   forwards to @rest;
 }
+abstract production silverVersionFlag
+top::CmdArgs ::= s::String rest::CmdArgs
+{
+  top.silverVersion = s;
+  forwards to @rest;
+}
 
 aspect function parseArgs
 Either<String  Decorated CmdArgs> ::= args::[String]
@@ -76,6 +84,9 @@ Either<String  Decorated CmdArgs> ::= args::[String]
            , flagSpec(name="--build-xml-location", paramString=nothing(),
                help="sets the path the Ant build.xml will be saved to",
                flagParser=option(buildXmlFlag))
+           , flagSpec(name="--silver-version", paramString=nothing(),
+               help="set the silver version string displayed to the user in --version",
+               flagParser=option(silverVersionFlag))
            ];
 }
 aspect production compilation
@@ -131,10 +142,12 @@ top::Compilation ::= g::Grammars  _  buildGrammars::[String]  a::Decorated CmdAr
 
   classpathRuntime <- nub(g.includedJars);  -- TODO: include in classpathCompiler too?
 
+  local silverVersion :: String = if a.silverVersion == "" then "${TIME}" else a.silverVersion;
+
   production attribute extraManifestAttributes :: [String] with ++;
   extraManifestAttributes := [
     "<attribute name='Built-By' value='${user.name}' />",
-    "<attribute name='Implementation-Version' value='${TIME}' />",
+    "<attribute name='Implementation-Version' value='" ++ silverVersion ++ "' />",
     "<attribute name='Main-Class' value='" ++ makeName(buildGrammar) ++ ".Main' />"]; -- TODO: we "should" make main depend on whether there is a main...
 
   extraManifestAttributes <-
