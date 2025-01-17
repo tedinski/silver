@@ -6,6 +6,8 @@
 set -euo pipefail
 
 silver_version=`git describe --tags`
+echo "Build version $silver_version"
+
 export SILVER_HOME=$PWD
 JVM_ARGS=(-Xss20M -Xmx6500M -jar ../jars/silver.compiler.composed.Default.jar --no-stdlib --include-jar ../jars/CopperCompiler.jar --include-jar ../jars/commonmark-0.17.1.jar --relative-jar "$@" --jar-impl-version "$silver_version")
 export GRAMMAR_PATH="../grammars"
