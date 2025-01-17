@@ -14,6 +14,9 @@ melt.trynode('silver') {
 
     checkout scm
 
+    // Fetch tags, so that we can obtain the Silver version when building the compiler jar
+    sh "git fetch --tags"
+
     // Bootstrap logic to obtain jars
     if (params.OVERRIDE_JARS != 'no') {
       def source = params.OVERRIDE_JARS
