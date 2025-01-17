@@ -507,15 +507,15 @@ public final class Util {
 		return new StringCatter(home.getPath());
 	}
 
-	public static StringCatter getSilverVersion() {
-		String path = determineSilverHomePath(Util.class).toString()+"/jars/silver.compiler.composed.Default.jar";
-        try {
-            JarInputStream file = new JarInputStream(new FileInputStream(path));
-            return new StringCatter(file.getManifest().getMainAttributes().getValue(Name.IMPLEMENTATION_VERSION));
-        } catch (Throwable t) {
-            throw new RuntimeException("Failed to get Silver version.", t);
-        }
-    }
+	public static StringCatter getJarVersion(Class<?> clazz) {
+		try {
+			URI jarLocation = clazz.getProtectionDomain().getCodeSource().getLocation().toURI();
+			JarInputStream file = new JarInputStream(new FileInputStream(new File(jarLocation)));
+			return new StringCatter(file.getManifest().getMainAttributes().getValue(Name.IMPLEMENTATION_VERSION));
+		} catch (Throwable t) {
+			throw new RuntimeException("Failed to get jar version.", t);
+		}
+	}
 	
 	public static ConsCell bitSetToList(BitSet b) {
 		ConsCell result = ConsCell.nil;
