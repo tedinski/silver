@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.net.URI;
+import java.util.jar.JarInputStream;
+import java.util.jar.Attributes.Name;
 
 import common.exceptions.*;
 import common.javainterop.ConsCellCollection;
@@ -503,6 +505,16 @@ public final class Util {
 		// HOME/jars/file.jar to HOME
 		File home = new File(jarLocation).getParentFile().getParentFile();
 		return new StringCatter(home.getPath());
+	}
+
+	public static StringCatter getJarVersion(Class<?> clazz) {
+		try {
+			URI jarLocation = clazz.getProtectionDomain().getCodeSource().getLocation().toURI();
+			JarInputStream file = new JarInputStream(new FileInputStream(new File(jarLocation)));
+			return new StringCatter(file.getManifest().getMainAttributes().getValue(Name.IMPLEMENTATION_VERSION));
+		} catch (Throwable t) {
+			throw new RuntimeException("Failed to get jar version.", t);
+		}
 	}
 	
 	public static ConsCell bitSetToList(BitSet b) {

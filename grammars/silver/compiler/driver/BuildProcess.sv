@@ -48,13 +48,14 @@ fun computeEnv IOErrorable<(Decorated CmdArgs, BuildEnv)> ::= args::[String] =
   | right(a) -> do {
     -- Figure out build env from environment and args
     benv::BuildEnv <- determineBuildEnv(a);
+    silverVersion::String <- lift(stateIO(getJarVersion));
     -- Because we want printing the version to work even if the environment is messed up
     -- we premptively handle that here. This is slightly unfortunate.
     -- Ideally, version printing would be just another thing we could have the command
     -- line decide to go do, but currently it's hard to re-use code if we do that.
     if a.displayVersion then
       throwRunError(127, -- error code so 'ant' isnt run
-        "Silver Version 0.4.5-dev\n" ++
+        "Silver Version " ++ silverVersion ++ "\n" ++
         "SILVER_HOME = " ++ benv.silverHome ++ "\n" ++
         "SILVER_GEN = " ++ benv.silverGen ++ "\n" ++
         "GRAMMAR_PATH:\n" ++ implode("\n", benv.grammarPath))
@@ -184,3 +185,11 @@ data RunError = runError
 type IOErrorable<a> = EitherT<RunError IO a>;
 
 fun throwRunError IOErrorable<a> ::= c::Integer m::String = throwError(runError(code=c, errMsg=m));
+
+function getJarVersion
+IOVal<String> ::= i::IOToken
+{
+  return error("NYI");
+} foreign {
+  "java" : return "new silver.core.Pioval(%i%, common.Util.getJarVersion(Init.class))";
+}
