@@ -6,7 +6,7 @@ grammar silver:compiler:extension:opersection;
 
 -- antiquoteAppExpr
 
-concrete production antiquoteAppExpr
+{-concrete production antiquoteAppExpr
 top::AppExpr ::= '$AppExpr' '{' e::Expr '}'
 {
   top.unparse = s"$$AppExpr{${e.unparse}}";
@@ -21,4 +21,4 @@ top::AST ::= prodName::String children::ASTs annotations::NamedASTs
 {
   directAntiquoteProductions <-
     ["silver:compiler:extension:silverconstruction:antiquoteAppExpr"];
-}
+}-}

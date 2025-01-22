@@ -103,7 +103,8 @@ top::AGDcl ::= @nt::QName
         eq = \ x::$TypeExpr{typerepTypeExpr(ntty)} y::$TypeExpr{typerepTypeExpr(ntty)} -> $Expr{
           if null(includedProds) then Silver_Expr {true} else
           foldr(
-            and(_, '&&', _),
+            -- and(_, '&&', _), -- luke removal, replace with `_ && _` when jars build
+            \e1::Expr e2::Expr -> Silver_Expr { silver:core:conj(e1, e2) }, -- luke addition for build
             matchPrimitive(
               Silver_Expr {x},
               Silver_TypeExpr {Boolean},
@@ -129,7 +130,8 @@ top::AGDcl ::= @nt::QName
                               varVarBinder(name(s"b${toString(i)}")),
                               range(0, length(prod.namedSignature.inputElements)))), ')', '->',
                           foldr(
-                            and(_, '&&', _),
+                            -- and(_, '&&', _), -- luke removal, replace with `_ && _` when jars build
+                            \e1::Expr e2::Expr -> Silver_Expr { silver:core:conj(e1, e2) }, -- luke addition for build
                             Silver_Expr {true},
                             map(
                               \ ie::(Integer, NamedSignatureElement) ->

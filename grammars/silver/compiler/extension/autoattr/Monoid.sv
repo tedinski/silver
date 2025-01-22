@@ -99,7 +99,8 @@ top::Operation ::=
 aspect production bandOperation
 top::Operation ::= 
 {
-  top.appendProd = and(_, '&&', _);
+  --top.appendProd = and(_, '&&', _); -- luke removal, replace with `_ && _` when jars build
+  top.appendProd = \e1::Expr e2::Expr -> Silver_Expr { silver:core:conj(e1, e2) }; -- luke addition for build
 }
 aspect production addOperation
 top::Operation ::= 

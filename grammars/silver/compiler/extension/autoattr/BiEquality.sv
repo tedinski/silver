@@ -52,7 +52,8 @@ top::ProductionStmt ::= includeShared::Boolean @synPartial::QName inh::String sy
               ')')} ->
           $Expr{
             foldr(
-              and(_, '&&', _),
+              -- and(_, '&&', _), -- luke removal, replace with `_ && _` when jars build
+              \e1::Expr e2::Expr -> Silver_Expr { silver:core:conj(e1, e2) }, -- luke addition for build
               trueConst('true'),
               map(
                 \ ie::NamedSignatureElement ->

@@ -1288,7 +1288,7 @@ top::Expr ::= 'false'
 -- These aspects for and/or provide special-case monadic short circuit evaluation semantics,
 -- if the second operand corresponds to failure.
 aspect production and
-top::Expr ::= e1::Expr '&&' e2::Expr
+top::Expr ::= e1::AppExpr '&&' e2::AppExpr
 {
   -- TODO: Need to re-decorate here, to avoid hidden transitive deps flow analysis issue.
   -- See https://github.com/melt-umn/silver/issues/812

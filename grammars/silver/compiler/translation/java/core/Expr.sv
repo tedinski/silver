@@ -569,13 +569,19 @@ top::Expr ::= 'false'
 
 -- Optimization: override operator translation for primitive types to avoid function call overhead
 aspect production and
-top::Expr ::= e1::Expr '&&' e2::Expr
+top::Expr ::= e1::AppExpr '&&' e2::AppExpr
 {
-  top.translation =
+  {-top.translation =
     case top.finalType of
     | boolType() -> s"(${e1.translation} && ${e2.translation})"
     | _ -> forward.translation
+    end;-}
+  top.translation = 
+    case top.finalType of
+    | boolType() -> Silver_Expr { silver:core:conj(e1, e2) }.translation -- luke addition
+    | _ -> forward.translation
     end;
+
   top.lazyTranslation = wrapThunk(top.translation, top.frame.lazyApplication);
 }
 

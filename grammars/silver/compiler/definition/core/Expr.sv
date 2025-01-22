@@ -759,11 +759,11 @@ top::Expr ::= 'false'
 }
 
 concrete production and
-top::Expr ::= e1::Expr '&&' e2::Expr
+top::Expr ::= e1::AppExpr '&&' e2::AppExpr
 {
   top.unparse = e1.unparse ++ " && " ++ e2.unparse;
 
-  forwards to Silver_Expr { silver:core:conj($Expr{@e1}, $Expr{@e2}) };
+  forwards to Silver_Expr { silver:core:conj($AppExpr{@e1}, $AppExpr{@e2}) };
 }
 
 concrete production or
