@@ -202,7 +202,7 @@ top::FlowSpecInh ::= transSyn::QNameAttrOccur '.' inh::FlowSpecInh
   top.unparse = s"${transSyn.unparse}.${inh.unparse}";
   top.inhList :=
     if transSyn.attrFound
-    then map(\ i -> s"${transSyn.attrDcl.fullName}.${i}", inh.inhList)
+    then map(\ i -> s"${transSyn.attrDcl.fullName}.${i}", filter(notTransAttr, inh.inhList))
     else [];
   top.refList := [];  -- TODO: An (erroneous) cycle in translation attr occurrences could lead to a crash here.
 
@@ -213,6 +213,8 @@ top::FlowSpecInh ::= transSyn::QNameAttrOccur '.' inh::FlowSpecInh
     if !transSyn.found || transSyn.attrDcl.isSynthesized && transSyn.attrDcl.isTranslation then []
     else [errFromOrigin(transSyn, transSyn.name ++ " is not a translation attribute and so cannot be within a flow type")];
 }
+
+fun notTransAttr Boolean ::= a::String = indexOf(".", a) == -1;
 
 {--
  - Inherit a flow spec from another flow spec.

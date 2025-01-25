@@ -87,7 +87,7 @@ fun checkEqDeps
       checkInhEq(prodName, rhsVertexType(sigName), attrName, config, prodGraphs, flowEnv, realEnv)
   | rhsSynVertex(sigName, attrName) -> []
   -- A dependency on a LOCAL. Technically, local equations may not exist!
-  -- But let's just assume they do, since `local name :: type = expr;` is the prefered syntax.
+  -- But let's just assume they do, since `local name :: type = expr;` is the preferred syntax.
   | localEqVertex(fName) -> []
   -- A dependency on a LOCAL.ATTR. SYN always exist again, so we only care about INH here.
   | localInhVertex(fName, attrName) -> 

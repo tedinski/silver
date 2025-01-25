@@ -1,7 +1,10 @@
 grammar silver:compiler:extension:strategyattr;
 
 abstract production strategyAttributeDcl
-top::AGDcl ::= isTotal::Boolean a::Name recVarNameEnv::[Pair<String String>] recVarTotalEnv::[Pair<String Boolean>] e::StrategyExpr
+top::AGDcl ::=
+  isTotal::Boolean a::Name
+  recVarNameEnv::[Pair<String String>] recVarTotalEnv::[Pair<String Boolean>]
+  e::StrategyExpr
 {
   top.unparse = (if isTotal then "" else "partial ") ++ "strategy attribute " ++ a.unparse ++ "=" ++ e.unparse ++ ";";
   propagate grammarName, config, env, flowEnv;
@@ -46,7 +49,9 @@ top::AGDcl ::= isTotal::Boolean a::Name recVarNameEnv::[Pair<String String>] rec
       map(
         \ d::(String, Decorated StrategyExpr with LiftedInhs) ->
           strategyAttributeDcl(
-            d.snd.isTotalNoEnv, name(d.fst), d.snd.recVarNameEnv, d.snd.recVarTotalNoEnvEnv, new(d.snd)),
+            d.snd.isTotalNoEnv, name(d.fst),
+            d.snd.recVarNameEnv, d.snd.recVarTotalNoEnvEnv,
+            new(d.snd)),
         e.liftedStrategies));
   
   -- Uncomment for debugging
@@ -147,7 +152,7 @@ top::ProductionStmt ::= includeShared::Boolean @attr::QName
       -- Check for errors in this or inlined strategy expressions that would be reported on the attribute definition
       attr.lookupAttribute.dcl.containsErrors ||
       any(map((.containsErrors), flatMap(getAttrDcl(_, top.env), attr.lookupAttribute.dcl.partialRefs))) ||
-      -- Check for total strategy ref occurs errors that would already be reported on the occurence
+      -- Check for total strategy ref occurs errors that would already be reported on the occurrence
       (!null(getOccursDcl(attr.lookupAttribute.fullName, top.frame.signature.outputElement.typerep.typeName, top.env)) &&
        any(map(null, map(getOccursDcl(_, top.frame.signature.outputElement.typerep.typeName, top.env), attr.lookupAttribute.dcl.totalRefs))))
     then []
@@ -168,6 +173,7 @@ top::ProductionStmt ::= includeShared::Boolean @attr::QName
         attr.lookupAttribute.dcl.liftedStrategyNames));
   
   -- Uncomment for debugging
+  --forwards to unsafeTrace(propagateImpl(includeShared, attr, fwrd), printT(attr.name ++ " on " ++ top.frame.fullName ++ " = " ++ e2.unparse ++ ";\n\n", unsafeIO()));
   --forwards to unsafeTrace(propagateImpl(includeShared, attr, fwrd), printT(attr.name ++ " on " ++ top.frame.fullName ++ " = " ++ (if isTotal then e2.totalTranslation else e2.partialTranslation).unparse ++ ";\n\n", unsafeIO()));
   forwards to propagateImpl(includeShared, attr, fwrd);
 }
