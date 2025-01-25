@@ -33,10 +33,11 @@ top::Compilation ::= g::Grammars  r::Grammars  buildGrammars::[String]  a::Decor
   
   -- Construct production graphs.
   production prodGraph :: [ProductionGraph] = 
-    computeAllProductionGraphs(allProds, allFlowEnv, allRealEnv) ++
-      -- Add in phantom and dispatch graphs
-      map(constructPhantomProductionGraph(_, allFlowEnv, allRealEnv), allNts) ++
-      map(constructDispatchGraph(_, allFlowEnv, allRealEnv), allDispatchSigs);
+    map(constructProductionGraph(_, allFlowEnv, allRealEnv), allProds) ++
+    -- Add in phantom, default and dispatch graphs
+    flatMap(constructPhantomProductionGraph(_, allFlowEnv, allRealEnv), allNts) ++
+    flatMap(constructDefaultProductionGraph(_, allFlowEnv, allRealEnv), allNts) ++
+    map(constructDispatchGraph(_, allFlowEnv, allRealEnv), allDispatchSigs);
   
   local initialFT :: EnvTree<FlowType> =
     computeInitialFlowTypes(allSpecDefs);
