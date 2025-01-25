@@ -109,7 +109,7 @@ top::Type ::= fn::String ks::[Kind] data::Boolean tracked::Boolean
   top.unify = 
     case top.unifyWith of
     | nonterminalType(ofn, oks, odata, otracked) ->
-        if fn == ofn --&& data == odata && tracked == otracked  -- Mismatched data/tractness can happen when comparing interface files
+        if fn == ofn && data == odata && tracked == otracked  -- Mismatched data/tractness can happen when comparing interface files
         then if ks == oks
           then emptySubst()
           else error("kind mismatch during unification for " ++ prettyType(^top) ++ " and " ++ prettyType(top.unifyWith)) -- Should be impossible

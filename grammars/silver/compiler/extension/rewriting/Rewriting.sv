@@ -51,7 +51,7 @@ top::Expr ::= 'traverse' n::QName '(' es::AppExprs ',' anns::AnnoAppExprs ')'
   
   local numChildren::Integer = n.lookupValue.typeScheme.arity;
   local annotations::[String] = map(fst, n.lookupValue.typeScheme.typerep.namedTypes);
-  es.appExprTypereps = repeat(nonterminalType("silver:rewrite:Strategy", [], false, false), numChildren);
+  es.appExprTypereps = repeat(nonterminalType("silver:rewrite:Strategy", [], false, true), numChildren);
   es.appExprApplied = n.unparse;
   es.decSiteVertexInfo = nothing();
   es.dispatchFlowDeps = [];
@@ -59,7 +59,7 @@ top::Expr ::= 'traverse' n::QName '(' es::AppExprs ',' anns::AnnoAppExprs ')'
   es.appIndexOffset = 0;
   anns.appExprApplied = n.unparse;
   anns.funcAnnotations =
-    map(pair(fst=_, snd=nonterminalType("silver:rewrite:Strategy", [], false, false)), annotations);
+    map(pair(fst=_, snd=nonterminalType("silver:rewrite:Strategy", [], false, true)), annotations);
   anns.remainingFuncAnnotations = anns.funcAnnotations;
  
   local localErrors::[Message] =
